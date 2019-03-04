@@ -1,0 +1,15 @@
+#!/bin/bash
+
+toggle="$1"
+
+if [ "$toggle" = "off" ] ; then
+    echo "Starting bluetooth ..."
+    rfkill unblock bluetooth
+    echo "Starting network manager (networking) ..."
+    nmcli networking on
+else
+    echo "Stopping bluetooth ..."
+    rfkill block bluetooth
+    echo "Stopping network manager (networking) ..."
+    nmcli networking off
+fi

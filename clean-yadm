@@ -1,0 +1,11 @@
+#!/bin/bash
+
+function purge_yadm_cache {
+    #echo "Purge cache: $1"
+    yadm rm --cached "$1"
+}
+
+while read line
+do
+    purge_yadm_cache "$line"
+done < "${1:-/dev/stdin}"

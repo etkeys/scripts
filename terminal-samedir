@@ -1,0 +1,3 @@
+#!/bin/bash
+
+$TERMINAL --working-directory="$PWD" 2>/dev/null

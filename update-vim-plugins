@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+autoloaddir="$HOME/.vim/autoload"
+bundledir="$HOME/.vim/bundle"
+
+mkdir -p "$autoloaddir" "$bundledir"
+curl -LSo "$autoloaddir/pathogen.vim" "https://tpo.pe/pathogen.vim"
+
+get-update-specific-package(){
+    dir="$1"
+    giturl="$2"
+
+    echo "Working on $1 ..."
+
+    if [ ! -d "$dir" ] ; then
+        git clone "$giturl" "$dir"
+    else
+        pushd "$dir"
+        git pull
+        popd
+    fi
+
+    echo "Done with $1"
+}
+
+pushd $bundledir
+
+get-update-specific-package "commentary" "https://tpope.io/vim/commentary.git"
+get-update-specific-package "nerdtree" "https://github.com/scrooloose/nerdtree.git"
+get-update-specific-package "syntastic" "https://github.com/vim-syntastic/syntastic.git"
+get-update-specific-package "repeat" "https://tpope.io/vim/repeat.git"
+get-update-specific-package "vim-surround" "https://github.com/tpope/vim-surround.git"
+
+popd
