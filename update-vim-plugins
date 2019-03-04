@@ -18,7 +18,7 @@ get-update-specific-package(){
         git clone "$giturl" "$dir"
     else
         pushd "$dir"
-        git pull
+        git pull origin master
         popd
     fi
 
@@ -27,6 +27,7 @@ get-update-specific-package(){
 
 pushd $bundledir
 
+get-update-specific-package "ctrlp" "https://github.com/ctrlpvim/ctrlp.vim.git"
 get-update-specific-package "commentary" "https://tpope.io/vim/commentary.git"
 get-update-specific-package "nerdtree" "https://github.com/scrooloose/nerdtree.git"
 get-update-specific-package "syntastic" "https://github.com/vim-syntastic/syntastic.git"
