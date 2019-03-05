@@ -5,7 +5,7 @@ ExecuteRsynccmd(){
     eval "$rsynccmd"
 }
 
-localdirs=('bin' 'Documents' 'Music' 'Pictures' 'Templates' 'Videos' 'Workspace' '.secure' '.ssh' '.themes/backup')
+localdirs=('bin' 'Documents' 'Music' 'Pictures' 'Templates' 'Videos' '.secure' '.ssh' '.themes/backup')
 options='--progress --protect-args -Cauvi -e ssh'
 remoteDestination="erik@duiker:$HOME"
 rsynccmd=''
