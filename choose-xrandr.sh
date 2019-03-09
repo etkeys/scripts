@@ -34,7 +34,7 @@ printverbose "$hdmi1"
 printverbose "$hdmi2"
 
 addsetup(){
-    if echo "$1" | grep -Eq "x.*\("; then
+    if echo "$1" | grep -Eq "connected"; then
         actSetup=$(( $actSetup | $2 ))
     fi
 }
