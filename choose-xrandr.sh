@@ -39,9 +39,21 @@ addsetup(){
     fi
 }
 
+normalizesetup(){
+    if (( $actSetup > ( $_MON2 | $_MON3 ) )) ; then
+        # If all three monintors are availalbe, turn off MON1
+        actSetup=$(($_MON2 | $_MON3))
+
+    elif (( $actSetup < $_MON1 )) ; then
+        actSetup=$_MON1
+
+    fi
+}
+
 addsetup "$edp" $_MON1
 addsetup "$hdmi1" $_MON2
 addsetup "$hdmi2" $_MON3
+normalizesetup
 printverbose "Actual setup mask: $actSetup"
 
 # If the current definition begins with actual
@@ -56,17 +68,9 @@ fi
 # Current definition does not match actual setup
 # Get a new definition that is appropriate
 
-if (( $actSetup > ( $_MON2 | $_MON3 ) )) ; then
-    # If all three monintors are active, turn off MON1
-    actSetup=$(($_MON2 | $_MON3))
-
-elif (( $actSetup < $_MON1 )) ; then
-    actSetup=$_MON1
-
-fi
 newDef="$(ls | grep "^$actSetup-")"
 printverbose "newDef: $newDef"
 ln -sfnv "$newDef" "current"
 
-i3-msg "restart"
+#i3-msg "restart"
 popd
