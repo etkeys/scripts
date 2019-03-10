@@ -12,7 +12,7 @@ engine="https://youtube.com"
 
 pgrep -x dmenu && exit
 
-choice=$(echo "?" | dmenu -i -p "Youtube search:" -fn "Ubuntu Medium 13" -nf "#ffffff" -nb "#232729" -sb "#215d9c") || exit 1
+choice=$(echo "?" | dmenuw "dmenu -p 'Youtube search:'") || exit 1
 
 if [ "$choice" = "?"  ]; then
     $browser "$engine"
