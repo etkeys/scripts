@@ -15,7 +15,7 @@ get-update-specific-package(){
     echo "Working on $1 ..."
 
     if [ ! -d "$dir" ] ; then
-        git clone "$giturl" "$dir"
+        git clone --depth 1 "$giturl" "$dir"
     else
         pushd "$dir"
         git pull origin master
@@ -27,11 +27,12 @@ get-update-specific-package(){
 
 pushd $bundledir
 
-get-update-specific-package "ctrlp" "https://github.com/ctrlpvim/ctrlp.vim.git"
-get-update-specific-package "commentary" "https://tpope.io/vim/commentary.git"
-get-update-specific-package "nerdtree" "https://github.com/scrooloose/nerdtree.git"
-get-update-specific-package "syntastic" "https://github.com/vim-syntastic/syntastic.git"
-get-update-specific-package "repeat" "https://tpope.io/vim/repeat.git"
-get-update-specific-package "vim-surround" "https://github.com/tpope/vim-surround.git"
+get-update-specific-package "ctrlp" "https://github.com/ctrlpvim/ctrlp.vim"
+get-update-specific-package "commentary" "https://github.com/tpope/vim-commentary"
+get-update-specific-package "nerdtree" "https://github.com/scrooloose/nerdtree"
+get-update-specific-package "syntastic" "https://github.com/vim-syntastic/syntastic"
+get-update-specific-package "repeat" "https://github.com/tpope/vim-repeat"
+get-update-specific-package "vim-airline" "https://github.com/vim-airline/vim-airline"
+get-update-specific-package "vim-surround" "https://github.com/tpope/vim-surround"
 
 popd
