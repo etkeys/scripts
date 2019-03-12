@@ -4,6 +4,7 @@ set -e
 
 autoloaddir="$HOME/.vim/autoload"
 bundledir="$HOME/.vim/bundle"
+sourcesdir="$HOME/.config/vim/plugin-sources.d"
 
 mkdir -p "$autoloaddir" "$bundledir"
 curl -LSo "$autoloaddir/pathogen.vim" "https://tpo.pe/pathogen.vim"
@@ -27,12 +28,12 @@ get-update-specific-package(){
 
 pushd $bundledir
 
-get-update-specific-package "ctrlp" "https://github.com/ctrlpvim/ctrlp.vim"
-get-update-specific-package "commentary" "https://github.com/tpope/vim-commentary"
-get-update-specific-package "nerdtree" "https://github.com/scrooloose/nerdtree"
-get-update-specific-package "syntastic" "https://github.com/vim-syntastic/syntastic"
-get-update-specific-package "repeat" "https://github.com/tpope/vim-repeat"
-get-update-specific-package "vim-airline" "https://github.com/vim-airline/vim-airline"
-get-update-specific-package "vim-surround" "https://github.com/tpope/vim-surround"
+for aFile in $(ls -1 "$sourcesdir"); do
+    if echo "$aFile" | grep -Eq "\.source"; then
+        plugin=$(echo "$aFile" | sed -s 's/\.source//')
+        url=$(head -n 1 "$sourcesdir/$aFile")
+        get-update-specific-package "$plugin" "$url"
+    fi
+done
 
 popd
