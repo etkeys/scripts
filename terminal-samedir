@@ -1,3 +1,17 @@
 #!/bin/bash
+# This script stolen from Luke Smith (LukeSmithxyz)
+# https://github.com/LukeSmithxyz/voidrice/blob/master/.scripts/i3cmds/samedir
 
-$TERMINAL --working-directory="$PWD" 2>/dev/null
+# One thing to keep in mind before using this script...
+# Some terminals are forked from a parent daemon process (e.g. gnome-termnial)
+# ROOTWINPID will always be this daemon process and you'll never get
+# the process of the terminal you're typing in. In this case the end result
+# will be the same as just opening a new terminal and you'll be placed probably
+# in $HOME. I found this out after a few hours of frustration, so I switched
+# to urxvt :)
+
+ROOTWINPID=$(xprop -root | awk '/_NET_ACTIVE_WINDOW\(WINDOW\)/{print $NF}' | xargs xprop -id | grep -m 1 PID | cut -d " " -f 3)
+CHILDPID=$(pstree -lpA "$ROOTWINPID" | head -n 1 | awk -F'(' '{print $3}' | sed -re 's/[^0-9]//g')
+
+cd "$(readlink /proc/"$CHILDPID"/cwd)"
+"$TERMINAL"
