@@ -2,7 +2,7 @@
 
 font='-fn "Ubuntu Medium 13"'
 
-if [ "$1" == "critical" ]; then
+if [ "$1" = "critical" ] ; then
     style='-nf "#000000" -nb "#d3c100" -sb "#9c2123"'
     shift 1
 else
@@ -11,3 +11,4 @@ fi
 style="$font $style"
 
 eval "$1 -i $style"
+#echo "$1 -i $style"
