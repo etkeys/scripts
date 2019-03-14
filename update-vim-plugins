@@ -4,7 +4,7 @@ set -e
 
 autoloaddir="$HOME/.vim/autoload"
 bundledir="$HOME/.vim/bundle"
-sourcesdir="$HOME/.config/vim/plugin-sources.d"
+sourcesdir="$XDG_CONFIG_HOME/vim/plugin-sources.d"
 
 mkdir -p "$autoloaddir" "$bundledir"
 curl -LSo "$autoloaddir/pathogen.vim" "https://tpo.pe/pathogen.vim"
