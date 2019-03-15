@@ -8,7 +8,7 @@ if [ "$1" = "critical" ] ; then
 else
     style='-nf "#ffffff" -nb "#232729" -sb "#215d9c"'
 fi
-style="$font $style"
+#style="$font $style"
 
 eval "$1 -i $style"
 #echo "$1 -i $style"
