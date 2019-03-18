@@ -9,31 +9,4 @@ sourcesdir="$XDG_CONFIG_HOME/vim/plugin-sources.d"
 mkdir -p "$autoloaddir" "$bundledir"
 curl -LSo "$autoloaddir/pathogen.vim" "https://tpo.pe/pathogen.vim"
 
-get-update-specific-package(){
-    dir="$1"
-    giturl="$2"
-
-    echo "Working on $1 ..."
-
-    if [ ! -d "$dir" ] ; then
-        git clone --depth 1 "$giturl" "$dir"
-    else
-        pushd "$dir"
-        git pull origin master
-        popd
-    fi
-
-    echo "Done with $1"
-}
-
-pushd $bundledir
-
-for aFile in $(ls -1 "$sourcesdir"); do
-    if echo "$aFile" | grep -Eq "\.source"; then
-        plugin=$(echo "$aFile" | sed -s 's/\.source//')
-        url=$(head -n 1 "$sourcesdir/$aFile")
-        get-update-specific-package "$plugin" "$url"
-    fi
-done
-
-popd
+git-source-downloader.sh "$sourcesdir" "$bundledir"
