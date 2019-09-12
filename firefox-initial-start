@@ -1,4 +1,3 @@
 #!/bin/bash
 
-#firefox --url https://messages.android.com/ --url https://410orange.slack.com/messages --url https://ubuntu-mate.community &
-firefox --url https://trello.com/b/iiLKrKCs/free-time --url https://messages.android.com/ --url https://www.messenger.com/ &
+firefox --url https://trello.com/b/iiLKrKCs/free-time --url https://www.messenger.com/ &
