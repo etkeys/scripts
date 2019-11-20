@@ -1,3 +1,3 @@
 #!/bin/bash
 
-firefox --url https://trello.com/b/iiLKrKCs/free-time --url https://www.messenger.com/ &
+firefox --url https://trello.com/b/iiLKrKCs/free-time --url https://www.messenger.com/ --url https://www.cnbc.com/us-markets/ --url https://secure03b.chase.com/web/auth/dashboard#/dashboard/overviewAccounts/overview/index --url https://www.usaa.com/inet/ent_logon/Logon 
