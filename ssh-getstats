@@ -12,7 +12,7 @@ print_usage(){
 }
 
 
-COMMAND="free -h;df -h /;mpstat 2 3;"
+COMMAND="uptime;free -h;df -h /;mpstat 2 3;"
 HOST="$1"
 ACCOUNT="${2:-$USER}"
 
