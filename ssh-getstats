@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# This script will ssh connect to the provided host using the provided account,
+# or the name specified by $USER, and run commands to retrieve system state 
+# information such as
+#   - The amount of RAM being used
+#   - The amount of Disk space being used
+#   - CPU utilization
+
+print_usage(){
+    echo "ussage: ssh-getstats HOST ACCOUNT_NAME"
+}
+
+
+COMMAND="free -h;df -h /;mpstat 2 3;"
+HOST="$1"
+ACCOUNT="${2:-$USER}"
+
+if [ -z "$HOST" ] ; then
+    print_usage
+    echo "error: missing host argument!"
+    exit 1
+fi
+
+ssh "$ACCOUNT"@$HOST "$COMMAND"
+exit $?
+
+
