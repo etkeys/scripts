@@ -11,8 +11,6 @@ print_usage(){
     echo "ussage: ssh-getstats HOST ACCOUNT_NAME"
 }
 
-
-COMMAND="uptime;free -h;df -h /;mpstat 2 3;"
 HOST="$1"
 ACCOUNT="${2:-$USER}"
 
@@ -22,7 +20,17 @@ if [ -z "$HOST" ] ; then
     exit 1
 fi
 
-ssh "$ACCOUNT"@$HOST "$COMMAND"
+# Quoting EOF at the start prevents variable substitution before the command
+# is passed to the remote. Without it, all the uname and lsb_release calls
+# would be substituted with the local machine information.
+ssh "$ACCOUNT"@$HOST /bin/bash << 'EOF'
+    printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
+    uptime; printf "\n";
+    free -h; printf "\n";
+    df -h /; printf "\n";
+    mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print'
+EOF
+
 exit $?
 
 
