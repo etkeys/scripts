@@ -27,7 +27,7 @@ ssh "$ACCOUNT"@$HOST /bin/bash << 'EOF'
     printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
     uptime; printf "\n";
     free -h; printf "\n";
-    df -h /; printf "\n";
+    df -hT -x tmpfs -x devtmpfs -x squashfs; printf "\n";
     mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print'
 EOF
 
