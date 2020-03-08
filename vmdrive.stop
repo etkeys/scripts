@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e 
+
+sync
+umount /mnt/vmdrive
+cryptdisks_stop vmdrive
+
+echo "vmdrive disconnected!"

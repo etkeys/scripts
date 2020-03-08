@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+cryptdisks_start vmdrive
+mount -o defaults /dev/mapper/vmdrive /mnt/vmdrive
+
+echo "vmdrive now available!"
