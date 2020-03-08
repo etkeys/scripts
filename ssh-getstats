@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This script will ssh connect to the provided host using the provided account,
 # or the name specified by $USER, and run commands to retrieve system state 
@@ -8,13 +8,30 @@
 #   - CPU utilization
 
 print_usage(){
-    echo "ussage: ssh-getstats HOST ACCOUNT_NAME"
+    echo "ussage: $0 [-u REMOTE_ACCOUNT_NAME] HOSTS..."
 }
 
-HOST="$1"
-ACCOUNT="${2:-$USER}"
+ACCOUNT=$USER
 
-if [ -z "$HOST" ] ; then
+while getopts ":u:" args; do
+    case "${args}" in
+        u)
+            ACCOUNT=${OPTARG}
+            ;;
+    esac
+done
+# If we got an option, shift past it
+shift $((OPTIND-1))
+
+HOSTS=(${@})
+
+echo "Using remote account name $ACCOUNT."
+for h in "${HOSTS[@]}"
+do
+    echo "Added host $h to queue."
+done
+
+if [ -z "$HOSTS" ] ; then
     print_usage
     echo "error: missing host argument!"
     exit 1
@@ -23,13 +40,17 @@ fi
 # Quoting EOF at the start prevents variable substitution before the command
 # is passed to the remote. Without it, all the uname and lsb_release calls
 # would be substituted with the local machine information.
-ssh "$ACCOUNT"@$HOST /bin/bash << 'EOF'
-    printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
-    uptime; printf "\n";
-    free -h; printf "\n";
-    df -hT -x tmpfs -x devtmpfs -x squashfs; printf "\n";
-    mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print'
+for h in "${HOSTS[@]}"
+do
+    echo "Sending request to $h..."
+    ssh "$ACCOUNT"@$h /bin/bash << 'EOF'
+        printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
+        uptime; printf "\n";
+        free -h; printf "\n";
+        df -hT -x tmpfs -x devtmpfs -x squashfs; printf "\n";
+        mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print'
 EOF
+done
 
 exit $?
 
