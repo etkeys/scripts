@@ -44,11 +44,16 @@ for h in "${HOSTS[@]}"
 do
     echo "Sending request to $h..."
     ssh "$ACCOUNT"@$h /bin/bash << 'EOF'
-        printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
+        printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" \
+             "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
         uptime; printf "\n";
         free -h; printf "\n";
         df -hT -x tmpfs -x devtmpfs -x squashfs; printf "\n";
-        mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print'
+        mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print';
+        printf "\nvirsh list --all:\n";
+        if systemctl status libvirtd | grep -q "active (running)" ; then
+            virsh -c qemu:///system list --all
+        fi
 EOF
 done
 
