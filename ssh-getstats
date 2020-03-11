@@ -8,7 +8,7 @@
 #   - CPU utilization
 
 print_usage(){
-    echo "ussage: $0 [-u REMOTE_ACCOUNT_NAME] HOSTS..."
+    echo "usage: $0 [-u REMOTE_ACCOUNT_NAME] HOSTS..."
 }
 
 ACCOUNT=$USER
