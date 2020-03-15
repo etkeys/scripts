@@ -49,6 +49,9 @@ do
         uptime;
         free -h;
         df -hT -x tmpfs -x devtmpfs -x squashfs;
+        if which zpool > /dev/null ; then
+            zpool status
+        fi
         mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print';
         if which libvirtd > /dev/null ; then
             if systemctl status libvirtd | grep -q "active (running)" ; then
