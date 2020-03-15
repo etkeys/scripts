@@ -46,13 +46,12 @@ do
     ssh "$ACCOUNT"@$h /bin/bash << 'EOF'
         printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" \
              "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
-        uptime; printf "\n";
-        free -h; printf "\n";
-        df -hT -x tmpfs -x devtmpfs -x squashfs; printf "\n";
+        uptime;
+        free -h;
+        df -hT -x tmpfs -x devtmpfs -x squashfs;
         mpstat 2 3 | perl -ne '/((^Average)|(.+CPU.+%)).+/ && print';
         if which libvirtd > /dev/null ; then
             if systemctl status libvirtd | grep -q "active (running)" ; then
-                printf "\nvirsh list --all:\n";
                 virsh -c qemu:///system list --all
             fi
         fi
