@@ -1,24 +1,27 @@
 #!/bin/bash
 
-HOME="/home/erik"
+LOCAL_DIRS=('Documents' 'Music' 'Pictures' 'Templates' 'Videos' '.secure' '.ssh' '.themes/backup')
+LOCAL_HOME="/home/erik" # need this because cron has a different home
+LOCAL_SSH_KEY="$LOCAL_HOME/.ssh/keys_AgFoxte"
+OPTIONS='-Caiusv -e ssh'
+REMOTE_ADDR="erik@toby"
+REMOTE_HOME="/home/erik/datastore"
+# CMD=''
 
 ExecuteRsynccmd(){
-    rsynccmd="rsync $options $HOME/$1 $remoteDestination"
-    eval "$rsynccmd"
+    CMD="rsync $OPTIONS $HOME/$1 $REMOTE_ADDR:$REMOTE_HOME"
+    eval "$CMD"
 }
 
-pushd "$HOME"
+pushd "$LOCAL_HOME"
 
 eval `ssh-agent -s`
-ssh-add .ssh/keys_AgFoxte
+ssh-add "$LOCAL_SSH_KEY"
 
-localdirs=('bin' 'Documents' 'Music' 'Pictures' 'Templates' 'Videos' '.secure' '.ssh' '.themes/backup')
-options='--progress --protect-args -Cauvi -e ssh'
-remoteDestination="erik@duiker:$HOME"
-rsynccmd=''
-
-for d in "${localdirs[@]}"; do
-    ExecuteRsynccmd "$d"
+for d in "${LOCAL_DIRS[@]}"; do
+    if [ -d "$d" ] ; then
+        ExecuteRsynccmd "$d"
+    fi
 done
 
 popd
