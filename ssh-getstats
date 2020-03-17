@@ -42,7 +42,6 @@ fi
 # would be substituted with the local machine information.
 for h in "${HOSTS[@]}"
 do
-    echo "Sending request to $h..."
     ssh "$ACCOUNT"@$h /bin/bash << 'EOF'
         printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" \
              "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
