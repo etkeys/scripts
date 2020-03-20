@@ -183,7 +183,6 @@ def handle_mount_mount(cfg_id, device, mount_dir):
         exit(_EXIT_BAD_CFG_DEF_)
     
     is_mounted = is_device_mounted(device)
-    print(f'is_device_mounted={is_mounted}')
     if is_mounted:
         print('mount: Device %s for %s is already mounted, skipping.' %
             (device, cfg_id))
@@ -204,8 +203,12 @@ def handle_mount_mount(cfg_id, device, mount_dir):
 
 def is_device_mounted(device):
     output = invoke_subprocess('mount', handle_output=False)
-    return any(search(f'^{device} on', line)
+    check1 = any(search(f'^{device} on', line)
         for line in output.stdout.split('\n'))
+    check2 = any(search(f'on {device} type', line)
+        for line in output.stdout.split('\n'))
+    result = check1 or check2
+    return result
 
 def is_device_in_fstab(device):
     pattern=f'^\s*{device}\s'
@@ -215,7 +218,6 @@ def handle_mount_umount(cfg_id, device, mount_dir):
     target = mount_dir if not mount_dir is None else device
 
     if not is_device_mounted(target):
-        print("umount: %s is not mounted, skipping." % target)
         return
     
     if not target is None:
