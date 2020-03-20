@@ -218,8 +218,9 @@ def handle_mount_umount(cfg_id, device, mount_dir):
     target = mount_dir if not mount_dir is None else device
 
     if not is_device_mounted(target):
+        print('umount: %s is not mounted, skipping.' % target)
         return
-    
+   
     if not target is None:
         invoke_subprocess('sync',fail_code=_EXIT_BAD_MOUNT_)
         invoke_subprocess(
