@@ -1,0 +1,53 @@
+---
+id: all
+# targets will be worked in the order specified
+targets: ["vm","nas1","nas2"]
+
+---
+id: nas1
+crypt: 
+    name: nas1_crypt
+options:
+    - nomount
+
+---
+id: nas2
+crypt: 
+    name: nas2_crypt
+options:
+    - nomount
+
+---
+id: vm
+crypt: 
+    name: vm_crypt
+mount:
+    dir: /mnt/usb1
+
+---
+id: vmdrive
+crypt:
+    name: vmdrive
+mount:
+    dir: /mnt/vmdrive
+---
+# alternative when mapper is not in crypttab
+id: nas2alt
+crypt:
+    # TODO what about UUID?
+    device: /dev/sdc1
+    name: nas2_crypt
+options:
+    - nomount
+
+---
+# alternative when mapper is not in fstab
+id: vmalt
+crypt:
+    name: vm_crypt
+mount: 
+    # TODO what about UUID?
+    device: /dev/mapper/vm_crypt
+    dir: /mnt/vm
+    options: [] # If "options" is omitted, assume []
+options: [] # If "options" is omitted, assume []
