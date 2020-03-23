@@ -46,6 +46,7 @@ do
         printf "@%s: %s - %s (%s %s %s)\n" "$(uname -n)" "$(lsb_release -sd)" \
              "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
         uptime;
+        grep -ve '^$' /var/lib/update-notifier/updates-available
         free -h;
         df -hT -x tmpfs -x devtmpfs -x squashfs;
         if which zpool > /dev/null ; then
