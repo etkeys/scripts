@@ -47,6 +47,7 @@ do
              "$(lsb_release -sc)" "$(uname -o)" "$(uname -r)" "$(uname -m)"
         uptime;
         grep -ve '^$' /var/lib/update-notifier/updates-available
+        if [ -f /var/run/reboot-required ] ; then cat /var/run/reboot-required; fi
         free -h;
         df -hT -x tmpfs -x devtmpfs -x squashfs;
         if which zpool > /dev/null ; then
