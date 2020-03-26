@@ -1,0 +1,26 @@
+#!/usr/bin/env perl
+
+my $lsblk = 
+    qx/lsblk --exclude 7 --output MOUNTPOINT,NAME --pairs --paths --inverse/;
+
+@matches = 
+    $lsblk =~ m{(MOUNTPOINT=(?!(""|"\[SWAP\]"|"/"|"/boot")).+)}g;
+
+if (@matches){
+    @msg = "";
+    push(@msg, "It may not be safe to shutdown while the following devices");
+    push(@msg, "are mounted!\n\n");
+    foreach (@matches){ 
+        if ($_){
+            local $name = $1 if $_ =~ m/NAME="(.+)"/;
+            push(@msg, "$name\n"); }
+    }
+
+    qx/notify-send -t 10000 'Unexpected mounted devices!' "@msg\n"/;
+    qx/dmenu-prompt critical "External devices still connected. Shutdown anyway?"
+        'shutdown now'/;
+}else{
+    qx/shutdown now/;
+}
+
+
