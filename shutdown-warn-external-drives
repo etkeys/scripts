@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 $lsblk = qx/lsblk --exclude 7 --output MOUNTPOINT,NAME --pairs --paths/;
-@problems = $lsblk =~ m{(MOUNTPOINT=(?!(""|"\[SWAP\]"|"/"|"/boot")).+)}g;
+@problems = $lsblk =~ m{(MOUNTPOINT=(?!(""|"\[SWAP\]"|"/"|"/boot.*")).+)}g;
 
 if (@problems){
     @msg = "";
@@ -15,7 +15,7 @@ if (@problems){
     }
 
     qx/notify-send -t 10000 'Unexpected mounted devices!' "@msg\n"/;
-    qx/dmenu-prompt critical "External devices still connected. Shutdown anyway?"
+    qx/dmenu-prompt critical "External devices still connected. Shutdown anyway?" \
         'shutdown now'/;
 }else{
     qx/shutdown now/;
