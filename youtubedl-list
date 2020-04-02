@@ -5,7 +5,7 @@
 # 2: The final name of the file
 # 3: The directory to put the final file
 download() {
-	youtube-dl --verbose --restrict-filename --extract-audio --audio-format mp3 "$1" --exec "mv {} $3/$2.mp3"
+	youtube-dl --verbose --restrict-filename --extract-audio --ffmpeg-location /snap/bin/ --audio-format mp3 "$1" --exec "mv {} $3/$2.mp3"
 }
 
 restingPlace="$1"
@@ -20,7 +20,7 @@ if [ -z "$inputFile" ] ; then
     exit 1
 fi
 
-pushd /tmp
+pushd ~/Music
 
 if [ ! -f "$inputFile" ] ; then
     echo "Cannot find file $inputFile"
