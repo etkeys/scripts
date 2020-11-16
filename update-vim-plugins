@@ -2,11 +2,47 @@
 
 set -e
 
+
+if [[ $EUID -eq 0 ]]; then
+    echo "This script should not be run as root!"
+    exit 1
+fi
+
 autoloaddir="$HOME/.vim/autoload"
 bundledir="$HOME/.vim/bundle"
-sourcesdir="$XDG_CONFIG_HOME/vim/plugin-sources.d"
 
 mkdir -p "$autoloaddir" "$bundledir"
 curl -LSo "$autoloaddir/pathogen.vim" "https://tpo.pe/pathogen.vim"
 
-git-source-downloader.sh "$sourcesdir" "$bundledir"
+git_sources=(
+"ctrlp,https://github.com/ctrlpvim/ctrlp.vim"
+"nerdtree,https://github.com/scrooloose/nerdtree"
+"syntastic,https://github.com/vim-syntastic/syntastic"
+"vim-airline,https://github.com/vim-airline/vim-airline"
+"commentary,https://github.com/tpope/vim-commentary"
+"vim-ragtag,https://github.com/tpope/vim-ragtag"
+"vim-repeat,https://github.com/tpope/vim-repeat"
+"vim-surround,https://github.com/tpope/vim-surround"
+"vim-unimpaired,https://github.com/tpope/vim-unimpaired"
+)
+
+pushd /tmp
+
+echo "Updating ${#git_sources[*]} vim plugins"
+for item in ${git_sources[*]}
+do
+    folder=$(echo "$item" | cut -d "," -f 1)
+    url=$(echo "$item" | cut -d "," -f 2)
+    echo "Updating $folder, from repo $url"
+
+    rm -rf "$folder" 2> /dev/null
+    if git clone --depth 1 "$url" "$folder" ; then
+        rm -rf "$folder/.git"
+        rm -rf "$bundledir/$folder"
+        mv "$folder" "$bundledir/"
+    else
+        echo "Failed to updated $folder."
+    fi
+done
+
+popd
