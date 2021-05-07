@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+
+set -e
+
+APP_NAME="dmenu-style"
+LAUNCHER="dmenu_run"
+PROMPTER="dmenu"
+XRESBASE="dmenu"
+XRESBASECOLOR="$XRESBASE.color"
+
+declare -a CHOICES
+CRITICAL=0
+OPTS_DONE=0
+PROMPT_TEXT=''
+VERBOSE=0
+YESNO=0
+
+function write_debug() {
+    if [ $VERBOSE -gt 0 ]; then
+        echo "[DEBUG] $@"
+    fi
+}
+
+function join_by() {
+    local IFS="$1"
+    shift;
+    echo "$*"
+}
+
+function usage() {
+    echo
+    echo "Usage"
+    echo "  ${APP_NAME} [options] -- [CMD]"
+    echo
+    echo "Options:"
+    echo "  --choose NUM item1 item2 ... itemN"
+    echo "                      : List of values to select from"
+    echo "                        NUM is the count of items to extract"
+    echo "  --critical          : Use styling that indicates high importance"
+    echo "  --prompt <msg>      : What to ask the user"
+    echo "  --verbose           : Print additional output"
+    echo "  --yesno             : Selection list is just \"No\" and \"Yes\""
+    echo
+    exit 1
+}
+
+if  $(command -v xgetres > /dev/null)  ; then
+    XCRITBACK=$(xgetres $XRESBASECOLOR.critical_background)
+    XCRITSEL=$(xgetres $XRESBASECOLOR.critical_selected)
+    XCRITTEXT=$(xgetres $XRESBASECOLOR.critical_text)
+    XSTDBACK=$(xgetres $XRESBASECOLOR.standard_background)
+    XSTDSEL=$(xgetres $XRESBASECOLOR.standard_selected)
+    XSTDTEXT=$(xgetres $XRESBASECOLOR.standard_text)
+    XFONT="$(xgetres $XRESBASE.font)"
+fi
+
+CRITBACK=${XCRITBACK:="#ffff00"}
+CRITSEL=${XCRITSEL:="#ff0000"}
+CRITTEXT=${XCRITTEXT:="#000000"}
+STDBACK=${XSTDBACK:="#000000"}
+STDSEL=${XSTDSEL:="#0000ff"}
+STDTEXT=${XSTDTEXT:="#ffffff"}
+FONT="${XFONT}"
+
+while [ $# -gt 0 ] && [ $OPTS_DONE -lt 1 ]; do
+    case "${1}" in
+        -critical|--critical)
+            CRITICAL=1
+            shift;;
+        -yesno|--yesno)
+            YESNO=1
+            shift;;
+        -prompt|--prompt)
+            PROMPT_TEXT="${2}"
+            if [ -z "${PROMPT_TEXT}" ]; then
+                EMSG="ERROR! No prompt text give for --prompt."
+                echo "$EMSG"
+                notify-send --urgency critical --expire-time 3000 "$APP_NAME" "$EMSG"
+                exit 1
+            fi
+            shift; shift;;
+        -choose|--choose)
+            COUNT="${2}"
+            write_debug "COUNT=$COUNT"
+            case $COUNT in
+                ''|*[!0-9]*)
+                    EMSG="ERROR! Expected NUMBER after --choose."
+                    echo "$EMSG"
+                    notify-send --urgency critical --expire-time 3000 "$APP_NAME" "$EMSG"
+                    usage
+                    ;;
+                *)
+                    shift; shift
+                for ((i = 0; i < $COUNT; i++)); do
+                    write_debug "adding choice: ${1}"
+                    CHOICES[i]="${1}"
+                    shift
+                done
+            esac
+            ;;
+        -v|-verbose|--verbose)
+            VERBOSE=$(($VERBOSE + 1))
+            shift;;
+        -h|--h|-help|--help)
+            usage;;
+        --)
+            OPTS_DONE=1
+            shift;;
+        *)
+            EMSG="ERROR! \"${1}\" is not a supported parameter."
+            echo "$EMSG"
+            notify-send --urgency critical --expire-time 3000 "$APP_NAME" "$EMSG"
+            usage;;
+    esac
+done
+
+write_debug "CRITBACK=$CRITBACK"
+write_debug "CRITSEL=$CRITSEL"
+write_debug "CRITTEXT=$CRITTEXT"
+write_debug "STDBACK=$STDBACK"
+write_debug "STDSEL=$STDSEL"
+write_debug "STDTEXT=$STDTEXT"
+write_debug "FONT=$FONT"
+
+write_debug "CRITICAL=$CRITICAL"
+write_debug "OPTS DONE=$OPTS_DONE"
+write_debug "PROMPT TEXT=$PROMPT_TEXT"
+write_debug "VERBOSE=$VERBOSE"
+write_debug "YESNO=$YESNO"
+
+[ -n "$FONT" ] && STYLE="-fn '$FONT'"
+if [ $CRITICAL -gt 0 ]; then
+    STYLE="$STYLE -nf '$CRITTEXT' -nb '$CRITBACK' -sb '$CRITSEL'"
+else
+    STYLE="$STYLE -nf '$STDTEXT' -nb '$STDBACK' -sb '$STDSEL'"
+fi
+
+if [ -z "$PROMPT_TEXT" ] ; then
+    #normal dmenu_run call
+    # -i is insensitive search. no long form arguments in older versions
+    eval "$LAUNCHER -i $STYLE"
+    exit 0
+fi
+
+if [ $YESNO -gt 0 ] ; then
+    CHOICES=("No" "Yes")
+fi
+
+if [ ${#CHOICES[@]} -lt 1 ]; then
+    EMSG="ERROR! Expected list of choices, but given none."
+    echo "$EMSG"
+    notify-send --urgency critical --expire-time 3000 "$APP_NAME" "$EMSG"
+    usage
+fi
+
+write_debug "CHOICES=${CHOICES[@]}"
+
+RES=$(join_by $'\n' "${CHOICES[@]}" | eval "$PROMPTER -i $STYLE -p '$PROMPT_TEXT'")
+write_debug "Selection=$RES"
+
+write_debug "COMMAND=$@"
+[ $YESNO -gt 0 ] && [[ "$RES" == "Yes" ]] && "$@"
+[ $YESNO -eq 0 ] && "$@" "$RES"
+
