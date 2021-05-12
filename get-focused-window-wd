@@ -13,5 +13,6 @@
 ROOTWINPID=$(xprop -root | awk '/_NET_ACTIVE_WINDOW\(WINDOW\)/{print $NF}' | xargs xprop -id | grep -m 1 PID | cut -d " " -f 3)
 CHILDPID=$(pstree -lpA "$ROOTWINPID" | head -n 1 | awk -F'(' '{print $3}' | sed -re 's/[^0-9]//g')
 
-cd "$(readlink /proc/"$CHILDPID"/cwd)"
-"$TERMINAL"
+# cd "$(readlink /proc/"$CHILDPID"/cwd)"
+# "$TERMINAL"
+echo "$(readlink /proc/"$CHILDPID"/cwd)"
