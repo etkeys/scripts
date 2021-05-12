@@ -7,12 +7,12 @@
 # Without input, will open DuckDuckGo.com.
 # URLs will be directly handed to the browser.
 # Anything else, it search it.
-browser=${BROWSER:-firefox}
+browser=${BROWSER:-x-www-browser}
 engine="https://duckduckgo.com"
 
 pgrep -x dmenu && exit
 
-choice=$(echo "?" | dmenuw "dmenu -p 'Search:'") || exit 1
+choice="$(dmenu-style --prompt 'Web search:' --choose 1 '?' -- echo)" || exit 1
 
 if [ "$choice" = "?"  ]; then
     $browser "$engine"
