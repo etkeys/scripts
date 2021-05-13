@@ -44,23 +44,15 @@ function usage() {
     exit 1
 }
 
-if  $(command -v xgetres > /dev/null)  ; then
-    XCRITBACK=$(xgetres $XRESBASECOLOR.critical_background)
-    XCRITSEL=$(xgetres $XRESBASECOLOR.critical_selected)
-    XCRITTEXT=$(xgetres $XRESBASECOLOR.critical_text)
-    XSTDBACK=$(xgetres $XRESBASECOLOR.standard_background)
-    XSTDSEL=$(xgetres $XRESBASECOLOR.standard_selected)
-    XSTDTEXT=$(xgetres $XRESBASECOLOR.standard_text)
-    XFONT="$(xgetres $XRESBASE.font)"
-fi
-
-CRITBACK=${XCRITBACK:="#ffff00"}
-CRITSEL=${XCRITSEL:="#ff0000"}
-CRITTEXT=${XCRITTEXT:="#000000"}
-STDBACK=${XSTDBACK:="#000000"}
-STDSEL=${XSTDSEL:="#0000ff"}
-STDTEXT=${XSTDTEXT:="#ffffff"}
-FONT="${XFONT}"
+CRITBG=$(xgetres $XRESBASECOLOR.critical_background || echo '#ffff00')
+CRITFG=$(xgetres $XRESBASECOLOR.critical_text || echo '#000000')
+CRITSBG=$(xgetres $XRESBASECOLOR.critical_selected || echo '#ff0000')
+CRITSFG=$(xgetres $XRESBASECOLOR.critical_selected_text || echo '#ffffff')
+FONT="$(xgetres $XRESBASE.font || echo 'pango:Ubuntu Mono 10')"
+STDBG=$(xgetres $XRESBASECOLOR.standard_background || echo '#000000')
+STDFG=$(xgetres $XRESBASECOLOR.standard_text || echo '#ffffff')
+STDSBG=$(xgetres $XRESBASECOLOR.standard_selected || echo '#0000ff')
+STDSFG=$(xgetres $XRESBASECOLOR.standard_selected_text || echo '#ffffff')
 
 while [ $# -gt 0 ] && [ $OPTS_DONE -lt 1 ]; do
     case "${1}" in
@@ -114,13 +106,15 @@ while [ $# -gt 0 ] && [ $OPTS_DONE -lt 1 ]; do
     esac
 done
 
-write_debug "CRITBACK=$CRITBACK"
-write_debug "CRITSEL=$CRITSEL"
-write_debug "CRITTEXT=$CRITTEXT"
-write_debug "STDBACK=$STDBACK"
-write_debug "STDSEL=$STDSEL"
-write_debug "STDTEXT=$STDTEXT"
+write_debug "CRITBG=$CRITBG"
+write_debug "CRITFG=$CRITFG"
+write_debug "CRITSBG=$CRITSBG"
+write_debug "CRITSFG=$CRITSFG"
 write_debug "FONT=$FONT"
+write_debug "STDBG=$STDBG"
+write_debug "STDFG=$STDFG"
+write_debug "STDSBG=$STDSBG"
+write_debug "STDSFG=$STDSFG"
 
 write_debug "CRITICAL=$CRITICAL"
 write_debug "OPTS DONE=$OPTS_DONE"
@@ -130,9 +124,9 @@ write_debug "YESNO=$YESNO"
 
 [ -n "$FONT" ] && STYLE="-fn '$FONT'"
 if [ $CRITICAL -gt 0 ]; then
-    STYLE="$STYLE -nf '$CRITTEXT' -nb '$CRITBACK' -sb '$CRITSEL'"
+    STYLE="$STYLE -nf '$CRITFG' -nb '$CRITBG' -sf '$CRITSFG' -sb '$CRITSBG'"
 else
-    STYLE="$STYLE -nf '$STDTEXT' -nb '$STDBACK' -sb '$STDSEL'"
+    STYLE="$STYLE -nf '$STDFG' -nb '$STDBG' -sf '$STDSFG' -sb '$STDSBG'"
 fi
 
 if [ -z "$PROMPT_TEXT" ] ; then
