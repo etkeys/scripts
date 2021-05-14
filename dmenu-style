@@ -44,15 +44,15 @@ function usage() {
     exit 1
 }
 
-CRITBG=$(xgetres $XRESBASECOLOR.critical_background || echo '#ffff00')
-CRITFG=$(xgetres $XRESBASECOLOR.critical_text || echo '#000000')
-CRITSBG=$(xgetres $XRESBASECOLOR.critical_selected || echo '#ff0000')
-CRITSFG=$(xgetres $XRESBASECOLOR.critical_selected_text || echo '#ffffff')
+CRITBG=$(xgetres $XRESBASECOLOR.crit_bg || echo '#ffff00')
+CRITFG=$(xgetres $XRESBASECOLOR.crit_fg || echo '#000000')
+CRITSBG=$(xgetres $XRESBASECOLOR.crit_sbg || echo '#ff0000')
+CRITSFG=$(xgetres $XRESBASECOLOR.crit_sfg || echo '#ffffff')
 FONT="$(xgetres $XRESBASE.font || echo 'pango:Ubuntu Mono 10')"
-STDBG=$(xgetres $XRESBASECOLOR.standard_background || echo '#000000')
-STDFG=$(xgetres $XRESBASECOLOR.standard_text || echo '#ffffff')
-STDSBG=$(xgetres $XRESBASECOLOR.standard_selected || echo '#0000ff')
-STDSFG=$(xgetres $XRESBASECOLOR.standard_selected_text || echo '#ffffff')
+STDBG=$(xgetres $XRESBASECOLOR.std_bg || echo '#000000')
+STDFG=$(xgetres $XRESBASECOLOR.std_fg || echo '#ffffff')
+STDSBG=$(xgetres $XRESBASECOLOR.std_sbg || echo '#0000ff')
+STDSFG=$(xgetres $XRESBASECOLOR.std_sfg || echo '#ffffff')
 
 while [ $# -gt 0 ] && [ $OPTS_DONE -lt 1 ]; do
     case "${1}" in
