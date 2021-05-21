@@ -9,7 +9,13 @@
 remontoire_PID=$(pidof remontoire)
 
 if [ -z "$remontoire_PID" ]; then
-    /usr/bin/remontoire -s $(printenv I3SOCK) &
+    OVERRIDE_THEME="$XDG_CONFIG_HOME/remontoire/current-theme"
+    # TODO if a link exists for the current theme, pass that path
+    if [ -e "$OVERRIDE_THEME" ]; then
+        /usr/bin/remontoire -s $(printenv I3SOCK) -t "$OVERRIDE_THEME" &
+    else
+        /usr/bin/remontoire -s $(printenv I3SOCK) &
+    fi
 else
     kill $remontoire_PID
 fi
