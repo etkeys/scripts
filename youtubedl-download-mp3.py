@@ -27,7 +27,7 @@ def download_item(url, final_name, final_dir):
 
         ret = subprocess.run(
             [
-                'youtube-dl',
+                'yt-dlp',
                 '--verbose',
                 '--restrict-filename',
                 '--extract-audio',
