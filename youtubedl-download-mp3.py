@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 import argparse
 from csv import DictReader
+from datetime import datetime, timedelta
 import os
+import random
 import subprocess
+from time import sleep
+
+_DEFAULT_DELAY_SECONDS = 211 # 3 minutes 31 seconds
+
+_DEFAULT_DELAY_LEEWAY_SECONDS = 17
 
 _SCRIPT_DESCRIPTION = """
 Read CSV file and use youtube-dl to download videos from specified URLs, extract
@@ -20,6 +27,16 @@ does not being with '@', then the path is check if it is an absolute path or
 relative. If the directory specified by "dir" does not exist, it is created.
 """
 
+def calculate_delay_time(delay_sec, leeway_sec):
+    leeway_op = random.choice(['+', '-'])
+    leeway_val = random.randint(0, leeway_sec)
+
+    if leeway_op == '-' and leeway_val > 0:
+        leeway_val = leeway_val * -1
+
+    return timedelta(seconds=delay_sec + leeway_val)
+
+
 def download_item(url, final_name, final_dir):
     try:
         if not os.path.exists(final_dir):
@@ -28,7 +45,6 @@ def download_item(url, final_name, final_dir):
         ret = subprocess.run(
             [
                 'yt-dlp',
-                '--verbose',
                 '--restrict-filename',
                 '--extract-audio',
                 '--audio-format', 'mp3',
@@ -72,9 +88,27 @@ def main():
     )
 
     # flags
-    # ....none
+    parser.add_argument(
+        '--delay',
+        # type=int,
+        dest='delay',
+        action='store_const',
+        default=_DEFAULT_DELAY_SECONDS,
+        help='Number of seconds to wait between each download (for the paranoid).'
+    )
+
+    parser.add_argument(
+        '--delay-leeway',
+        # type=int,
+        dest='delay_leeway',
+        action='store_const',
+        default=_DEFAULT_DELAY_LEEWAY_SECONDS,
+        help='Number of seconds higher or lower than --delay to make the wait time somewhat inconsistant.'
+    )
 
     args = parser.parse_args()
+
+    random.seed()
 
     data = [r for r in DictReader(args.File)]
     for idx, row in enumerate(data):
@@ -90,6 +124,12 @@ def main():
         if not success:
             with open('youtubedl-download-mp3.errors', 'a') as f:
                 f.writelines([f"{final_name} ({url}): {ex}"])
+
+        if args.delay > 0 and idx < (len(data) - 1):
+            wait_time = calculate_delay_time(args.delay, args.delay_leeway)
+            print(f"Current time: {datetime.now().strftime('%H:%M:%S')}")
+            print(f"Sleeping until: {(datetime.now() + wait_time).strftime('%H:%M:%S')}")
+            sleep(wait_time.seconds)
 
 if __name__ == '__main__':
     main()
