@@ -1,0 +1,12 @@
+[Unit]
+Description=Run script to restart pulseaudio to load correct settings
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+StandardOutput=journal
+TimeoutStartSec=5
+ExecStart=/usr/local/bin/user-reload-pulseaudio.sh
+
+[Install]
+WantedBy=default.target
