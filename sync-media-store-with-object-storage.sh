@@ -9,9 +9,16 @@ set -e
 S3_ENDPOINT="${S3_ENDPOINT:?S3 endpoint not provided}"
 MOUNT_POINT="${MEDIA_STORE_MOINT_POINT:=/media/media-store}"
 
+function write_message(){
+    echo "$(date '+%F %T') $1"
+}
+
 # Sync items from local storage to object storage
 # The source of turth for these items is the local storage and we want
 # object storage to be a copy.
+
+write_message "Syncing Movies..."
+
 aws s3 sync \
     "${MOUNT_POINT}/movies/" \
     "s3://etkeys-movies-and-series/movies" \
@@ -19,6 +26,8 @@ aws s3 sync \
     --delete \
     --no-progress \
     --output text
+
+write_message "Syncing Series..."
 
 aws s3 sync \
     "${MOUNT_POINT}/series/" \
@@ -40,7 +49,4 @@ aws s3 sync \
 #     --no-progress \
 #     --output text
 
-cat << EOF > "${MOUNT_POINT}/last-sync.txt"
-$(date)
-"${S3_ENDPOINT}
-EOF
+write_message "Done."
