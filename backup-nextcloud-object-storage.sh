@@ -6,26 +6,32 @@
 
 set -e
 
-NEXTCLOUD_S3_ENDPOINT="${NEXTCLOUD_S3_ENDPOINT:?Nextcloud s3 endpoint not set}"
-MOUNT_POINT="${S3_BACKUP_MOUNT_POINT:=/home/erik/nextcloud_backup}"
+ENDPOINT="${S3_ENDPOINT:?Nextcloud s3 endpoint not set}"
+MOUNT_POINT="${S3_BACKUP_MOUNT_POINT:=/mnt/erik/obj-store-bak}"
 
-declare -A roots
-roots[erik]="etkeys-nextcloud-erik"
+function write_message(){
+    echo "$(date '+%F %T') $1"
+}
 
-for LOCAL_ROOT in "${!roots[@]}"; do
-    DEST="${MOUNT_POINT}/${LOCAL_ROOT}"
+DIRECTORIES=('Documents' 'Music' 'Pictures' 'Videos')
 
-    [ ! -d "${DEST}" ] && mkdir "${DEST}"
+for DIRECTORY in "${DIRECTORIES[@]}"; do
+    write_message "Syncing ${DIRECTORY}..."
 
+    DEST="${MOUNT_POINT}/nextcloud/${DIRECTORY}"
+    [ ! -d "${DEST}" ] && mkdir -p "${DEST}"
     aws s3 sync \
-        "s3://${roots[$LOCAL_ROOT]}/" \
+        "s3://etkeys-objs001-erik-${DIRECTORY}/" \
         "${DEST}/." \
-        --endpoint="${NEXTCLOUD_S3_ENDPOINT}" \
-        --delete
+        --endpoint="${ENDPOINT}" \
+        --delete \
+        --no-progress \
+        --output text
 done
 
-cat << EOF > "${MOUNT_POINT}/last-sync.txt"
+cat << EOF > "${MOUNT_POINT}/nextcloud/last-sync.txt"
 $(date)
-"${NEXTCLOUD_S3_ENDPOINT}"
+"${ENDPOINT}"
 EOF
 
+write_message "Done."
