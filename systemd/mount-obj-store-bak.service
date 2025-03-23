@@ -1,0 +1,11 @@
+[Unit]
+Description=Mount Object Store Backup
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 60
+ExecStart=/bin/mount /dev/mapper/obj-store-bak
+
+[Install]
+WantedBy=multi-user.target
