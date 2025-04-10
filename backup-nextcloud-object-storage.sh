@@ -1,13 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #*************************************************************************
-# Use awscli to sync nextcloud object storage data to a local drive
+# Use b2 to sync nextcloud object storage data to a local drive
 #*************************************************************************
 
 set -e
 
-ENDPOINT="${S3_ENDPOINT:?Nextcloud s3 endpoint not set}"
+export HOME='/home/erik'
+
 MOUNT_POINT="${S3_BACKUP_MOUNT_POINT:=/mnt/erik/obj-store-bak}"
+B2_APP="$HOME/.local/bin/b2"
 
 function write_message(){
     echo "$(date '+%F %T') $1"
@@ -20,18 +22,16 @@ for DIRECTORY in "${DIRECTORIES[@]}"; do
 
     DEST="${MOUNT_POINT}/nextcloud/${DIRECTORY}"
     [ ! -d "${DEST}" ] && mkdir -p "${DEST}"
-    aws s3 sync \
-        "s3://etkeys-objs001-erik-${DIRECTORY}/" \
+    "$B2_APP" sync \
+        "b2://etkeys-objs001-erik-${DIRECTORY}/" \
         "${DEST}/." \
-        --endpoint="${ENDPOINT}" \
         --delete \
-        --no-progress \
-        --output text
+        --replace-newer \
+        --no-progress
 done
 
 cat << EOF > "${MOUNT_POINT}/nextcloud/last-sync.txt"
 $(date)
-"${ENDPOINT}"
 EOF
 
 write_message "Done."
