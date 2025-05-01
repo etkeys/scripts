@@ -8,8 +8,7 @@ set -e
 
 export HOME='/home/erik'
 
-MOUNT_POINT="${S3_BACKUP_MOUNT_POINT:=/mnt/erik/obj-store-bak}"
-B2_APP="$HOME/.local/bin/b2"
+MOUNT_POINT="${S3_BACKUP_MOUNT_POINT:=/mnt/erik/heap}"
 
 function write_message(){
     echo "$(date '+%F %T') $1"
@@ -22,7 +21,7 @@ for DIRECTORY in "${DIRECTORIES[@]}"; do
 
     DEST="${MOUNT_POINT}/nextcloud/${DIRECTORY}"
     [ ! -d "${DEST}" ] && mkdir -p "${DEST}"
-    "$B2_APP" sync \
+    b2 sync \
         "b2://etkeys-objs001-erik-${DIRECTORY}/" \
         "${DEST}/." \
         --delete \
