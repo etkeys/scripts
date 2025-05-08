@@ -2,9 +2,8 @@
 
 set -e
 
-MEDIA_SEND_ROOT="${HOME}/Videos/rip"
-MEDIA_SEND_DIR="${MEDIA_SEND_ROOT}/send"
-MEDIA_REVIEW_DIR="${MEDIA_SEND_ROOT}/review"
+SOURCE_DIR="${HOME}/Videos/rip/send"
+DESTINATION_DIR="media002:/media/media-share"
 
 rsync \
     --recursive \
@@ -13,9 +12,5 @@ rsync \
     --times \
     --whole-file \
     --progress \
-    "${MEDIA_SEND_DIR}/." \
-    media001:/media/media-store/.
-
-[[ -d "${MEDIA_SEND_DIR}/movies" ]] && mv "${MEDIA_SEND_DIR}"/movies/* "${MEDIA_REVIEW_DIR}/"
-
-[[ -d "${MEDIA_SEND_DIR}/series" ]] && mv "${MEDIA_SEND_DIR}"/series/* "${MEDIA_REVIEW_DIR}/"
+    "${SOURCE_DIR}/." \
+    "${DESTINATION_DIR}/."
