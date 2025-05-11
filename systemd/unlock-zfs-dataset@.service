@@ -1,0 +1,18 @@
+# based on stack overflow
+# https://unix.stackexchange.com/a/755850
+# Usage:
+# systemctl enable unlock-zfs-dataset@<dataset name>.service
+
+[Unit]
+Description=Load encryption key for dataset %i
+DefaultDependencies=no
+Before=zfs-mount.service
+After=zfs-import.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/zfs load-key %I
+
+[Install]
+WantedBy=zfs-mount.service
