@@ -2,9 +2,13 @@
 # https://unix.stackexchange.com/a/755850
 # Usage:
 # systemctl enable unlock-zfs-dataset@<dataset name>.service
+# NOTE:
+# For <dataset name>, use "-" character to replace "/" character. So for
+# an actual dataset name "tank/dataset1", enable/disable the service using
+# "tank-dataset1".
 
 [Unit]
-Description=Load encryption key for dataset %i
+Description=Load encryption key for dataset %I
 DefaultDependencies=no
 Before=zfs-mount.service
 After=zfs-import.target
