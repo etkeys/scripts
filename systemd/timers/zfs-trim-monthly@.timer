@@ -1,0 +1,16 @@
+[Unit]
+Description=Monthly zpool trim timer for %i
+Documentation=man:zpool-trim(8)
+
+[Timer]
+# The last tuesday of the month or
+# the second to last tuesday, if the
+# last tuesday is the last day of the
+# month.
+OnCalendar=TUE *-*~02..08 2:00:00
+Persistent=true
+RandomizedDelaySec=1h
+Unit=zfs-trim@%i.service
+
+[Install]
+WantedBy=timers.target

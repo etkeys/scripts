@@ -1,0 +1,14 @@
+
+[Unit]
+Description=Monthly zfs snapshot for dataset %I
+Documentation=man:zfs-snapshot(8)
+
+[Timer]
+# The last day of the month
+OnCalendar=*-*~01 2:00:00
+Persistent=true
+RandomizedDelaySec=1h
+Unit=zfs-snapshot@%i.service
+
+[Install]
+WantedBy=timers.target

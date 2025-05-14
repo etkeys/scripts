@@ -1,0 +1,21 @@
+# Timer to perform ZFS scrub on the target pool
+# ZFS scrub repairs any files that may have been silently corrupted
+# Usage:
+# systemctl enable --now zfs-scrub-monthly@<pool name>.service
+# systemctl disable --now zfs-scrub-monthly@<pool name>.service
+#   NOTE: for disable, need to use --now otherwise scrub with immediately start
+
+[Unit]
+Description=Monthly zpool scrub timer for %i
+Documentation=man:zpool-scrub(8)
+
+[Timer]
+# The second Sunday of the month at 2am
+OnCalendar=SUN *-*-8..14 2:00:00
+# Will restore the time between reboots and will run if missed.
+Persistent=true
+RandomizedDelaySec=1h
+Unit=zfs-scrub@%i.service
+
+[Install]
+WantedBy=timers.target

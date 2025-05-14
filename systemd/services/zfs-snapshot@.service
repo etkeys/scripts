@@ -1,0 +1,13 @@
+[Unit]
+Description=Create ZFS snapshot for %I dataset
+After=zfs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/create-zfs-snapshot.sh "%I"
+
+# Removing the install portion makes is so the service
+# can only be started by some other triggers (like a timer)
+# or systemctl start
+#[Install]
+#WantedBy=multi-user.target
