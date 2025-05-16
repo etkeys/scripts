@@ -1,0 +1,13 @@
+
+[Unit]
+Description=Regularly runs operation to sync media store with object storage
+
+[Timer]
+# Mostly every friday that is not at the start or end of
+# the month (because there is other heavy maintenance that
+# will be occurring during those times)
+OnCalendar=THU *-*-2..27 23:30:00
+Unit=backup-nextcloud-object-storage.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,15 @@
+
+[Unit]
+Description=Backup object storage data used by Nextcloud
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=backup-nextcloud-object-storage.sh --log-omit-timestamp
+User=erik
+
+# Not having a Install section makes it so the service cannot be
+# enabled and only started from triggers (like timers) or by
+# calling start.
+#[Install]
+#WantedBy=multi-user.target

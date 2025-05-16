@@ -6,12 +6,22 @@
 
 set -e
 
-export HOME='/home/erik'
-
 MOUNT_POINT="${S3_BACKUP_MOUNT_POINT:=/mnt/erik/heap}"
 
+LOG_WITH_TIMESTAMP=0
+for arg in "$@"; do
+    if [[ "$arg" == "--log-omit-timestamp" ]]; then
+        LOG_WITH_TIMESTAMP=1
+        break
+    fi
+done
+
 function write_message(){
-    echo "$(date '+%F %T') $1"
+    if [[ $LOG_WITH_TIMESTAMP -eq 0 ]]; then
+        echo "$(date '+%F %T') $1"
+    else
+        echo "$1"
+    fi
 }
 
 DIRECTORIES=('Documents' 'Music' 'Pictures' 'Videos')
