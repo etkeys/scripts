@@ -1,16 +1,29 @@
 #!/usr/bin/env bash
 
 #*************************************************************************
-# Use awscli to sync media store contents with object storage.
+# Use b2 to sync media store contents with object storage.
 #*************************************************************************
 
 set -e
 
-S3_ENDPOINT="${S3_ENDPOINT:?S3 endpoint not provided}"
-MOUNT_POINT="${MEDIA_STORE_MOINT_POINT:=/media/media-store}"
+# export HOME='/home/erik'
+MOUNT_POINT="${MEDIA_STORE_MOINT_POINT:=/media/media-share}"
+#B2_APP="$HOME/.local/bin/b2"
+
+LOG_WITH_TIMESTAMP=0
+for arg in "$@"; do
+    if [[ "$arg" == "--log-omit-timestamp" ]]; then
+        LOG_WITH_TIMESTAMP=1
+        break
+    fi
+done
 
 function write_message(){
-    echo "$(date '+%F %T') $1"
+    if [[ $LOG_WITH_TIMESTAMP -eq 0 ]]; then
+        echo "$(date '+%F %T') $1"
+    else
+        echo "$1"
+    fi
 }
 
 # Sync items from local storage to object storage
@@ -19,23 +32,27 @@ function write_message(){
 
 write_message "Syncing Movies..."
 
-aws s3 sync \
+# "$B2_APP" \
+b2 \
+    sync \
     "${MOUNT_POINT}/movies/" \
-    "s3://etkeys-movies-and-series/movies" \
-    --endpoint "${S3_ENDPOINT}" \
+    "b2://etkeys-movies-and-series/movies" \
+    --skip-newer \
     --delete \
     --no-progress \
-    --output text
+    --dry-run
 
 write_message "Syncing Series..."
 
-aws s3 sync \
+# "$B2_APP" \
+b2 \
+    sync \
     "${MOUNT_POINT}/series/" \
-    "s3://etkeys-movies-and-series/series" \
-    --endpoint "${S3_ENDPOINT}" \
+    "b2://etkeys-movies-and-series/series" \
+    --skip-newer \
     --delete \
     --no-progress \
-    --output text
+    --dry-run
 
 # Sync items from object storage to local storage
 # The source of turth for these items is object storage and we want
