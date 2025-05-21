@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+# Backup to Object Storage Script
+#
+# This script performs automated backups to object storage using Backblaze B2
+# by processing multiple configuration files for different backup paths.
+#
+# Features:
+# - Supports multiple backup configurations in a single directory
+# - Validates configuration before sync
+# - Uses B2 CLI for object storage synchronization
+# - Provides error handling and reporting
+#
+# Prerequisites:
+# - Backblaze B2 CLI (b2) must be installed
+# - Configuration files located in /usr/local/etc/backup-to-object-storage.d/
+# - Each configuration file must define:
+#   * LOCAL_PATH: Source directory to backup
+#   * DESTINATION_BUCKET_PATH: Target B2 bucket path
+#   * OPTIONS: (optional) for additional b2 sync parameters, must be quoted
+#
+# Usage:
+#   ./backup-to-object-storage.sh
+#
+# Exit Codes:
+# - 1: Configuration directory does not exist
+# - 100: One or more sync operations failed
+
+set -e
+
+CONFIG_DIR="/usr/local/etc/backup-to-object-storage.d"
+
+if [ ! -e "$CONFIG_DIR" ]; then
+    echo "Error: Configuration directory $CONFIG_DIR does not exist"
+    exit 1
+fi
+
+HAS_FAILURE=false
+for config_file in "$CONFIG_DIR"/*.conf; do
+    # Skip if not a file
+    [ -f "$config_file" ] || continue
+
+    # Get the base filename (service name)
+    source "$config_file"
+
+    # Validate required variables
+    if [ -z "$LOCAL_PATH" ] || [ -z "$DESTINATION_BUCKET_PATH" ]; then
+        echo "Error: LOCAL_PATH or DESTINATION_BUCKET_PATH not set in $config_file"
+        continue
+    fi
+
+    # Execute the sync
+    echo "Syncing $LOCAL_PATH to $DESTINATION_BUCKET_PATH..."
+    b2 sync "$LOCAL_PATH" "$DESTINATION_BUCKET_PATH" $OPTIONS
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Sync failed for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
+        HAS_FAILURE=true
+    else
+        echo "Sync completed successfully for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
+    fi
+done
+
+if [ "$HAS_FAILURE" = true ]; then
+    echo "One or more sync operations failed."
+    exit 100
+fi
+echo "Done."
