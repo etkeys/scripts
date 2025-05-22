@@ -46,6 +46,7 @@ for config_file in "$CONFIG_DIR"/*.conf; do
     # Validate required variables
     if [ -z "$LOCAL_PATH" ] || [ -z "$DESTINATION_BUCKET_PATH" ]; then
         echo "Error: LOCAL_PATH or DESTINATION_BUCKET_PATH not set in $config_file"
+        HAS_FAILURE=true
         continue
     fi
 
@@ -56,9 +57,9 @@ for config_file in "$CONFIG_DIR"/*.conf; do
     if [ $? -ne 0 ]; then
         echo "Error: Sync failed for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
         HAS_FAILURE=true
-    else
-        echo "Sync completed successfully for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
     fi
+
+    echo "Sync completed successfully for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
 done
 
 if [ "$HAS_FAILURE" = true ]; then
