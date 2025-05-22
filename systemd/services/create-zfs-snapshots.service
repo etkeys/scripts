@@ -1,10 +1,10 @@
 [Unit]
-Description=Create ZFS snapshot for %I dataset
+Description=Create ZFS snapshot for configured datasets
 After=zfs.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/create-zfs-snapshot.sh "%I"
+ExecStart=/usr/local/sbin/create-zfs-snapshot.sh
 
 # Removing the install portion makes is so the service
 # can only be started by some other triggers (like a timer)

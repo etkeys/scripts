@@ -1,6 +1,6 @@
 
 [Unit]
-Description=Monthly zfs snapshot for dataset %I
+Description=Monthly zfs snapshot for configured datasets
 Documentation=man:zfs-snapshot(8)
 
 [Timer]
@@ -8,7 +8,7 @@ Documentation=man:zfs-snapshot(8)
 OnCalendar=*-*~01 2:00:00
 Persistent=true
 RandomizedDelaySec=1h
-Unit=zfs-snapshot@%i.service
+Unit=create-zfs-snapshots.service
 
 [Install]
 WantedBy=timers.target
