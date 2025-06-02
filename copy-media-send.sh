@@ -7,8 +7,6 @@ DESTINATION_DIR="media002:/media/media-share"
 
 rsync \
     --recursive \
-    --checksum \
-    --itemize-changes \
     --times \
     --whole-file \
     --progress \
