@@ -4,61 +4,132 @@
 # specified dataset. The script can perform either a full backup or an
 # incremental backup based on the last backup.
 
-DESTINATION_DIR_ROOT="${HOME}/nas_backup"
-DESTINATION_DIR_SUFFIX="full-backup"
-INCREMENTAL=0
-SOURCE_DATASET="tank/heap_erik"
-SSH_HOST="media002"
+set -eu
+
+readonly ENO_BAD_CONFIG_DIR=2
+readonly ENO_UNKNOWN_SNAPSHOT=3
+readonly ENO_FAILED_JOB=4
+
+readonly BACKUP_ROOT_DIR="${HOME}/nas_backup"
+readonly CONFIG_DIR="${BACKUP_ROOT_DIR}/config.d"
+readonly SSH_HOST="media002"
+
+SNAPSHOT_NAME=""
+SNAPSHOT_BACKUP_DIR=""
+
+if [ ! -e "${CONFIG_DIR}" ]; then
+    echo "Error: Configuration directory ${CONFIG_DIR} does not exist"
+    exit $ENO_BAD_CONFIG_DIR
+fi
+
+process_config() {
+    local config_file="$1"
+    # Skip if not a file
+    if [ ! -f "${config_file}" ]; then
+        echo "Skipping non-file: ${config_file}"
+        return 1
+    fi
+    echo "Processing configuration file ${config_file}"
+
+    # Use a full, absolute path or validate the config file location
+    # shellcheck disable=SC1090
+    source "${config_file}"
+    if [ -z "${DATASET}" ]; then
+        echo "Error: DATASET not set in ${config_file}"
+        return 1
+    fi
+    echo "Dataset: ${DATASET}"
+
+    local dataset_mount_point
+    dataset_mount_point="$(ssh ${SSH_HOST} zfs get -Ho value mountpoint "${DATASET}")"
+    echo "Mount point: ${dataset_mount_point}"
+    if [ -z "${dataset_mount_point}" ]; then
+        echo "Error: Could not determine mount point for dataset ${DATASET}"
+        return 1
+    fi
+
+    local source_dir
+    source_dir="${dataset_mount_point}/.zfs/snapshot/${SNAPSHOT_NAME}"
+    echo "Source directory: ${source_dir}"
+    if ! ssh ${SSH_HOST} "[ -d '${source_dir}' ]"; then
+        echo "Error: Source directory ${source_dir} does not exist for dataset ${DATASET}"
+        return 1
+    fi
 
 
+    local destination_dir
+    destination_dir="${DATASET##*/}"
+    destination_dir="${SNAPSHOT_BACKUP_DIR}/${destination_dir%.*}"
+    echo "Destination directory: ${destination_dir}"
+    if [ -d "${destination_dir}" ]; then
+        echo "Error: Destination directory ${destination_dir} already exists for dataset ${DATASET} in ${config_file}"
+        return 1
+    fi
 
-SOURCE_DATASET_MOUNT_POINT="$(ssh ${SSH_HOST} zfs get -Ho value mountpoint ${SOURCE_DATASET})"
+    # rsync -av \
+    #     --progress \
+    #     "${SSH_HOST}:${source_dir}/." \
+    #     "${destination_dir}"
+    sleep 5 # Simulate rsync for testing purposes
+    if [ $? -ne 0 ]; then
+        echo "Error: rsync failed for ${config_file}"
+        return 1
+    else
+        echo "Successfully processed ${config_file}"
+        return 0
+    fi
+}
+
+process_all_configs() {
+    local config_file
+    local has_error=false
+    for config_file in "${CONFIG_DIR}"/*.conf; do
+
+        SECONDS=0
+
+        process_config "${config_file}" || has_error=true
+
+        local duration=$SECONDS
+        # Print the duration in a human-readable format (00h 00m 00s)
+        printf "Elapsed time: %02dh %02dm %02ds\n" \
+            $((duration / 3600)) \
+            $((duration % 3600 / 60)) \
+            $((duration % 60))
+    done
+
+    if [ "${has_error}" = true ]; then
+        echo "One or more configuration files had errors."
+        return 1
+    else
+        echo "All configuration files processed successfully."
+        return 0
+    fi
+}
 
 SNAPSHOT_NAME="$(
-ssh ${SSH_HOST} zfs list -t snapshot -o name ${SOURCE_DATASET} |
-    tail -n 1 |
-    cut -d '@' -f 2)"
-
-SOURCE_DIR="${SOURCE_DATASET_MOUNT_POINT}/.zfs/snapshot/${SNAPSHOT_NAME}"
-
-INCREMENTAL_SOURCE_DIR="$(
-find "${DESTINATION_DIR_ROOT}" -maxdepth 1 -type d -not -name "lost+found" |
+ssh $SSH_HOST zfs list -t snapshot -o name |
+    tail -n+2 |
+    cut -d '@' -f 2 |
     sort |
-    tail -n 1 |
-    cut -d '/' -f 2)"
-
-read -r -p "Do you want to do an incremental backup based on ${INCREMENTAL_SOURCE_DIR}? (y/n) " REPLY
-if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-    INCREMENTAL=1
-    DESTINATION_DIR_SUFFIX="incremental-backup"
+    uniq |
+    tail -n 1)"
+if [ -z "${SNAPSHOT_NAME}" ]; then
+    echo "Error: Could not determine snapshot name."
+    exit $ENO_UNKNOWN_SNAPSHOT
 fi
 
+echo "Using snapshot: ${SNAPSHOT_NAME}"
 
-DESTINATION_DIR="${DESTINATION_DIR_ROOT}/${SNAPSHOT_NAME}-${DESTINATION_DIR_SUFFIX}"
-if [ -d "${DESTINATION_DIR}" ]; then
-    echo "Destination directory, '${DESTINATION_DIR}', already exists. Exiting."
-    exit 1
+SNAPSHOT_BACKUP_DIR="${BACKUP_ROOT_DIR}/${SNAPSHOT_NAME}"
+echo "Snapshot backup directory: ${SNAPSHOT_BACKUP_DIR}"
+if [ ! -d "${SNAPSHOT_BACKUP_DIR}" ]; then
+    echo "Creating backup directory: ${SNAPSHOT_BACKUP_DIR}"
+    mkdir -p "${SNAPSHOT_BACKUP_DIR}"
 fi
 
-mkdir "${DESTINATION_DIR}"
-
-if [ "${INCREMENTAL}" -eq 1 ]; then
-    echo "Incremental backup based on ${INCREMENTAL_SOURCE_DIR}"
-
-    time \
-    rsync -av \
-        --progress \
-        --delete \
-        --link-dest="${DESTINATION_DIR_ROOT}/${INCREMENTAL_SOURCE_DIR}" \
-        "${SSH_HOST}:${SOURCE_DIR}/." \
-        "${DESTINATION_DIR}/."
+if process_all_configs ; then
+    echo "Backup completed successfully."
 else
-    echo "Full backup"
-
-    time \
-    rsync -av \
-        --progress \
-        "${SSH_HOST}:${SOURCE_DIR}/." \
-        "${DESTINATION_DIR}/."
+    echo "Backup encountered errors."
+    exit $ENO_FAILED_JOB
 fi
-
