@@ -1,0 +1,8 @@
+[Unit]
+Description=Monitor power status via network beacons
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/power-outage-test.sh
+User=root

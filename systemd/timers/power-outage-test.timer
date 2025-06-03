@@ -1,0 +1,12 @@
+[Unit]
+Description=Run power outage test script every 10 minutes
+Requires=power-outage-test.service
+
+[Timer]
+Unit=power-outage-test.service
+OnBootSec=5min
+OnUnitActiveSec=10min
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
