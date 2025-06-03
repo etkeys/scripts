@@ -16,11 +16,22 @@ readonly SSH_HOST="media002"
 
 SNAPSHOT_NAME=""
 SNAPSHOT_BACKUP_DIR=""
+VERBOSE=false
 
-if [ ! -e "${CONFIG_DIR}" ]; then
-    echo "Error: Configuration directory ${CONFIG_DIR} does not exist"
-    exit $ENO_BAD_CONFIG_DIR
-fi
+# Function to print usage information
+print_usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo "Options:"
+    echo "  -v, --verbose    Enable verbose output"
+    echo "  -h, --help       Display this help message and exit"
+}
+
+# Function to print verbose messages
+print_verbose() {
+    if [ "$VERBOSE" = true ]; then
+        echo "$@"
+    fi
+}
 
 process_config() {
     local config_file="$1"
@@ -38,11 +49,11 @@ process_config() {
         echo "Error: DATASET not set in ${config_file}"
         return 1
     fi
-    echo "Dataset: ${DATASET}"
+    print_verbose "Dataset: ${DATASET}"
 
     local dataset_mount_point
     dataset_mount_point="$(ssh ${SSH_HOST} zfs get -Ho value mountpoint "${DATASET}")"
-    echo "Mount point: ${dataset_mount_point}"
+    print_verbose "Mount point: ${dataset_mount_point}"
     if [ -z "${dataset_mount_point}" ]; then
         echo "Error: Could not determine mount point for dataset ${DATASET}"
         return 1
@@ -50,7 +61,7 @@ process_config() {
 
     local source_dir
     source_dir="${dataset_mount_point}/.zfs/snapshot/${SNAPSHOT_NAME}"
-    echo "Source directory: ${source_dir}"
+    print_verbose "Source directory: ${source_dir}"
     if ! ssh ${SSH_HOST} "[ -d '${source_dir}' ]"; then
         echo "Error: Source directory ${source_dir} does not exist for dataset ${DATASET}"
         return 1
@@ -60,7 +71,7 @@ process_config() {
     local destination_dir
     destination_dir="${DATASET##*/}"
     destination_dir="${SNAPSHOT_BACKUP_DIR}/${destination_dir%.*}"
-    echo "Destination directory: ${destination_dir}"
+    print_verbose "Destination directory: ${destination_dir}"
     if [ -d "${destination_dir}" ]; then
         echo "Error: Destination directory ${destination_dir} already exists for dataset ${DATASET} in ${config_file}"
         return 1
@@ -106,6 +117,29 @@ process_all_configs() {
     fi
 }
 
+# Simple command line argument parsing
+for arg in "$@"; do
+    case "$arg" in
+        -v|--verbose)
+            VERBOSE=true
+            ;;
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            print_usage >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ ! -e "${CONFIG_DIR}" ]; then
+    echo "Error: Configuration directory ${CONFIG_DIR} does not exist"
+    exit $ENO_BAD_CONFIG_DIR
+fi
+
 SNAPSHOT_NAME="$(
 ssh $SSH_HOST zfs list -t snapshot -o name |
     tail -n+2 |
@@ -118,12 +152,12 @@ if [ -z "${SNAPSHOT_NAME}" ]; then
     exit $ENO_UNKNOWN_SNAPSHOT
 fi
 
-echo "Using snapshot: ${SNAPSHOT_NAME}"
+print_verbose "Using snapshot: ${SNAPSHOT_NAME}"
 
 SNAPSHOT_BACKUP_DIR="${BACKUP_ROOT_DIR}/${SNAPSHOT_NAME}"
-echo "Snapshot backup directory: ${SNAPSHOT_BACKUP_DIR}"
+print_verbose "Snapshot backup directory: ${SNAPSHOT_BACKUP_DIR}"
 if [ ! -d "${SNAPSHOT_BACKUP_DIR}" ]; then
-    echo "Creating backup directory: ${SNAPSHOT_BACKUP_DIR}"
+    print_verbose "Creating backup directory: ${SNAPSHOT_BACKUP_DIR}"
     mkdir -p "${SNAPSHOT_BACKUP_DIR}"
 fi
 
