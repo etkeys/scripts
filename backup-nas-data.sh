@@ -17,6 +17,7 @@ readonly SSH_HOST="media002"
 SNAPSHOT_NAME=""
 SNAPSHOT_BACKUP_DIR=""
 VERBOSE=false
+LOG_DIR=""
 
 # Function to print usage information
 print_usage() {
@@ -67,26 +68,30 @@ process_config() {
         return 1
     fi
 
-
+    local destination_name
     local destination_dir
-    destination_dir="${DATASET##*/}"
-    destination_dir="${SNAPSHOT_BACKUP_DIR}/${destination_dir%.*}"
+    destination_name="${DATASET##*/}"
+    destination_name="${destination_name%.*}"
+    destination_dir="${SNAPSHOT_BACKUP_DIR}/${destination_name}"
     print_verbose "Destination directory: ${destination_dir}"
     if [ -d "${destination_dir}" ]; then
         echo "Error: Destination directory ${destination_dir} already exists for dataset ${DATASET} in ${config_file}"
         return 1
     fi
 
-    # rsync -av \
-    #     --progress \
-    #     "${SSH_HOST}:${source_dir}/." \
-    #     "${destination_dir}"
-    sleep 5 # Simulate rsync for testing purposes
+    local log_file="${LOG_DIR}/${destination_name}.log"
+    print_verbose "Log file: ${log_file}"
+    
+    mkdir -p "${destination_dir}"
+    rsync -av \
+        --progress \
+        "${SSH_HOST}:${source_dir}/." \
+        "${destination_dir}" > "${log_file}" 2>&1
     if [ $? -ne 0 ]; then
-        echo "Error: rsync failed for ${config_file}"
+        echo "Error: rsync failed for ${config_file} - see log at ${log_file}"
         return 1
     else
-        echo "Successfully processed ${config_file}"
+        echo "Successfully processed ${config_file} - log at ${log_file}"
         return 0
     fi
 }
@@ -140,6 +145,11 @@ if [ ! -e "${CONFIG_DIR}" ]; then
     exit $ENO_BAD_CONFIG_DIR
 fi
 
+# Create log directory
+LOG_DIR="/tmp/backup-nas-data-logs-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "${LOG_DIR}"
+print_verbose "Log directory: ${LOG_DIR}"
+
 SNAPSHOT_NAME="$(
 ssh $SSH_HOST zfs list -t snapshot -o name |
     tail -n+2 |
@@ -163,7 +173,9 @@ fi
 
 if process_all_configs ; then
     echo "Backup completed successfully."
+    echo "Log files are available in: ${LOG_DIR}"
 else
     echo "Backup encountered errors."
+    echo "Log files are available in: ${LOG_DIR}"
     exit $ENO_FAILED_JOB
 fi
