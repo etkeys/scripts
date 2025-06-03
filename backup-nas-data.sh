@@ -1,11 +1,32 @@
 #!/usr/bin/env bash
-# Copy files from a remote ZFS snapshot to a local directory (on external disk)
-# using rsync. The zfs snapshot is determined by the latest snapshot of the
-# specified dataset. The script can perform either a full backup or an
-# incremental backup based on the last backup.
-
+#
+# backup-nas-data.sh - ZFS snapshot backup utility
+#
+# This script backs up ZFS snapshots from a NAS to a local directory structure.
+# It works by:
+# 1. SSH'ing to a remote host (media002) to find the latest ZFS snapshot
+# 2. Creating a local backup directory structure under ~/nas_backup
+# 3. Processing each configuration file in the config.d directory
+# 4. For each config file, retrieving the dataset's mount point and backing up 
+#    the snapshot using rsync
+# 5. Logging all operations to timestamped log files
+#
+# Configuration files must define at least:
+# - DATASET: the ZFS dataset path to back up
+#
+# Options:
+#   -v, --verbose    Enable verbose output
+#   -h, --help       Display help message and exit
+#
+# Exit codes:
+#   1 - Bad cli arguments or invocation
+#   2 - Bad configuration directory
+#   3 - Unknown to determin snapshot
+#   4 - Backup job failed
+#
 set -eu
 
+readonly ENO_BAD_CLI=1
 readonly ENO_BAD_CONFIG_DIR=2
 readonly ENO_UNKNOWN_SNAPSHOT=3
 readonly ENO_FAILED_JOB=4
@@ -135,7 +156,7 @@ for arg in "$@"; do
         *)
             echo "Unknown option: $arg" >&2
             print_usage >&2
-            exit 1
+            exit $ENO_BAD_CLI
             ;;
     esac
 done
