@@ -105,7 +105,6 @@ process_config() {
     
     mkdir -p "${destination_dir}"
     rsync -av \
-        --progress \
         "${SSH_HOST}:${source_dir}/." \
         "${destination_dir}" > "${log_file}" 2>&1
     if [ $? -ne 0 ]; then
