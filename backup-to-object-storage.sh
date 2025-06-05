@@ -52,7 +52,7 @@ for config_file in "$CONFIG_DIR"/*.conf; do
 
     # Execute the sync
     echo "Syncing $LOCAL_PATH to $DESTINATION_BUCKET_PATH..."
-    b2 sync "$LOCAL_PATH" "$DESTINATION_BUCKET_PATH" $OPTIONS
+    b2 sync --threads 2 "$LOCAL_PATH" "$DESTINATION_BUCKET_PATH" $OPTIONS
 
     if [ $? -ne 0 ]; then
         echo "Error: Sync failed for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
