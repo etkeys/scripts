@@ -24,21 +24,32 @@
 #
 # Exit Codes:
 # - 1: Configuration directory does not exist
+# - 2: Encryption key file does not exist
 # - 100: One or more sync operations failed
 
 set -e
 
 CONFIG_DIR="/usr/local/etc/backup-to-object-storage.d"
+ENCRYPTION_KEY_FILE="${HOME}/secrets/b2_sync_default.key" # contents must be base64 encoded
 
 if [ ! -e "$CONFIG_DIR" ]; then
     echo "Error: Configuration directory $CONFIG_DIR does not exist"
     exit 1
 fi
 
+if [ ! -e "$ENCRYPTION_KEY_FILE" ]; then
+    echo "Error: Encryption key file $ENCRYPTION_KEY_FILE does not exist"
+    exit 1
+fi
+
+export B2_DESTINATION_SSE_C_KEY_B64=$(cat "$ENCRYPTION_KEY_FILE")
+
 HAS_FAILURE=false
 for config_file in "$CONFIG_DIR"/*.conf; do
     # Skip if not a file
     [ -f "$config_file" ] || continue
+
+    OPTIONS=""
 
     # Get the base filename (service name)
     source "$config_file"
@@ -52,7 +63,8 @@ for config_file in "$CONFIG_DIR"/*.conf; do
 
     # Execute the sync
     echo "Syncing $LOCAL_PATH to $DESTINATION_BUCKET_PATH..."
-    b2 sync --threads 2 "$LOCAL_PATH" "$DESTINATION_BUCKET_PATH" $OPTIONS
+    # shellcheck disable=SC2086
+    b2 sync --threads 2 $OPTIONS "$LOCAL_PATH" "$DESTINATION_BUCKET_PATH"
 
     if [ $? -ne 0 ]; then
         echo "Error: Sync failed for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
