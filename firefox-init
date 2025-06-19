@@ -1,3 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-firefox --url http://homeassistant.local:8123/ --url https://www.messenger.com/ --url https://www.cnbc.com/markets/ --url https://secure03b.chase.com/web/auth/dashboard#/dashboard/overviewAccounts/overview/index --url https://www.usaa.com/inet/ent_logon/Logon 
+firefox \
+    --url https://nextcloud.etkeys.me/ \
+    --url http://homeassistant.local:8123/ \
+    --url https://www.messenger.com/
