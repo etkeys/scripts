@@ -13,6 +13,11 @@
 #
 # Prerequisites:
 # - Backblaze B2 CLI (b2) must be installed
+# - B2 account credentials must be configured. Location of credentials database
+#   must be defined in the B2_ACCOUNT_INFO environment variable BEFORE running
+#   this script.
+# - Encryption key file must be base64 encoded and located at:
+#   /home/erik/secrets/b2_sync_default.key
 # - Configuration files located in /usr/local/etc/backup-to-object-storage.d/
 # - Each configuration file must define:
 #   * LOCAL_PATH: Source directory to backup
@@ -30,7 +35,7 @@
 set -e
 
 CONFIG_DIR="/usr/local/etc/backup-to-object-storage.d"
-ENCRYPTION_KEY_FILE="${HOME}/secrets/b2_sync_default.key" # contents must be base64 encoded
+ENCRYPTION_KEY_FILE="/home/erik/secrets/b2_sync_default.key" # contents must be base64 encoded
 
 if [ ! -e "$CONFIG_DIR" ]; then
     echo "Error: Configuration directory $CONFIG_DIR does not exist"
@@ -43,6 +48,7 @@ if [ ! -e "$ENCRYPTION_KEY_FILE" ]; then
 fi
 
 export B2_DESTINATION_SSE_C_KEY_B64=$(cat "$ENCRYPTION_KEY_FILE")
+export B2_ACCOUNT_INFO
 
 HAS_FAILURE=false
 for config_file in "$CONFIG_DIR"/*.conf; do
