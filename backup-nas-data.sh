@@ -13,6 +13,9 @@
 #
 # Configuration files must define at least:
 # - DATASET: the ZFS dataset path to back up
+# - SUBDIR: (optional) subdirectory within the snapshot to back up
+# - OVERRIDE_DESTINATION_NAME: (optional) custom name for the backup directory
+# - RSYNC_EXTRA_ARGS: (optional) additional arguments for rsync
 #
 # Options:
 #   -v, --verbose    Enable verbose output
@@ -64,6 +67,11 @@ process_config() {
     fi
     echo "Processing configuration file ${config_file}"
 
+    local DATASET=""
+    local SUBDIR=""
+    local OVERRIDE_DESTINATION_NAME=""
+    local RSYNC_EXTRA_ARGS=""
+
     # Use a full, absolute path or validate the config file location
     # shellcheck disable=SC1090
     source "${config_file}"
@@ -83,6 +91,9 @@ process_config() {
 
     local source_dir
     source_dir="${dataset_mount_point}/.zfs/snapshot/${SNAPSHOT_NAME}"
+    if [ -n "${SUBDIR}" ]; then
+        source_dir="${source_dir}/${SUBDIR}"
+    fi
     print_verbose "Source directory: ${source_dir}"
     if ! ssh ${SSH_HOST} "[ -d '${source_dir}' ]"; then
         echo "Error: Source directory ${source_dir} does not exist for dataset ${DATASET}"
@@ -91,8 +102,12 @@ process_config() {
 
     local destination_name
     local destination_dir
-    destination_name="${DATASET##*/}"
-    destination_name="${destination_name%.*}"
+    if [ -n "${OVERRIDE_DESTINATION_NAME}" ]; then
+        destination_name="${OVERRIDE_DESTINATION_NAME}"
+    else
+        destination_name="${DATASET##*/}"
+        destination_name="${destination_name%.*}"
+    fi
     destination_dir="${SNAPSHOT_BACKUP_DIR}/${destination_name}"
     print_verbose "Destination directory: ${destination_dir}"
     if [ -d "${destination_dir}" ]; then
@@ -105,6 +120,7 @@ process_config() {
     
     mkdir -p "${destination_dir}"
     rsync -av \
+        ${RSYNC_EXTRA_ARGS} \
         "${SSH_HOST}:${source_dir}/." \
         "${destination_dir}" > "${log_file}" 2>&1
     if [ $? -ne 0 ]; then
