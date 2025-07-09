@@ -4,8 +4,7 @@ Description=Monthly zfs snapshot for configured datasets
 Documentation=man:zfs-snapshot(8)
 
 [Timer]
-# The last day of the month
-OnCalendar=*-*~01 2:00:00
+OnCalendar=SAT *-*-* 2:00:00
 Persistent=true
 RandomizedDelaySec=1h
 Unit=create-zfs-snapshots.service
