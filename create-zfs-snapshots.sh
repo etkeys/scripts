@@ -58,6 +58,9 @@ for config_file in "$CONFIG_DIR"/*.conf; do
     # Skip if not a file
     [ -f "$config_file" ] || continue
 
+    DATASET=""
+    RECURSIVE=false
+
     # Get the base filename (service name)
     source "$config_file"
 
@@ -75,9 +78,14 @@ for config_file in "$CONFIG_DIR"/*.conf; do
         continue
     fi
 
+    RECURSE_ARG=""
+    if [ "$RECURSIVE" = true ]; then
+        RECURSE_ARG="-r"
+    fi
+
     # Take a snapshot of the dataset
     echo "Creating snapshot for dataset $DATASET..."
-    zfs snapshot "${DATASET}@${SNAPSHOT_NAME}"
+    zfs snapshot $RECURSE_ARG "${DATASET}@${SNAPSHOT_NAME}"
 
     if [ $? -ne 0 ]; then
         echo "Error: Failed to create snapshot for $DATASET"
