@@ -54,4 +54,12 @@ fi
 
 mv "$TEMP_FILE" "$FINAL_DIR/."
 
+COUNT_FILES=$(ls -1 "$FINAL_DIR" | wc -l)
+while [ $COUNT_FILES -gt 10 ]; do
+  OLDEST_FILE=$(ls -1 "$FINAL_DIR" | head -1)
+  echo "Removing oldest backup file: $OLDEST_FILE"
+  rm "$FINAL_DIR/$OLDEST_FILE"
+  COUNT_FILES=$(ls -1 "$FINAL_DIR" | wc -l)
+done
+
 echo "Done."
