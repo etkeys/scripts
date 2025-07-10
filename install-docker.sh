@@ -19,7 +19,7 @@
 # Usage:
 #   sudo ./install-docker.sh
 #   or
-#   sudo curl -fsSL https://raw.githubusercontent.com/etkeys/scripts/main/install-docker.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/etkeys/scripts/refs/heads/master/install-docker.sh | sudo bash
 #
 # Post-Installation:
 # - User can be added to docker group using:
@@ -79,9 +79,19 @@ apt-get install -y \
 # Run hello-world to verify installation
 docker run hello-world
 
-echo ""
-echo "If needed, add your user to the docker group:"
-echo "    sudo usermod -aG docker \$USER"
-echo "Then log out and back in to apply the group change."
+if whiptail --title "Add User to Docker Group" \
+            --yesno "Would you like to add user '$USER' to the docker group? This allows running docker commands without sudo. Be warned, this can have security implications." \
+            10 72; then
+    if [ -z "$USER" ]; then
+        echo "No user found."
+    else
+        usermod -aG docker "$USER"
+        echo "User $USER has been added to the docker group."
+    fi
+else
+    echo "You can add your user to the docker group later using:"
+    echo "    sudo usermod -aG docker \$USER"
+fi
+
 echo ""
 echo "Docker installation complete."
