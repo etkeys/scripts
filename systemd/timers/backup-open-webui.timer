@@ -1,0 +1,10 @@
+
+[Unit]
+Description=Regularly run service to backup open webui application
+
+[Timer]
+OnCalendar=WED *-*-* 23:00:00
+Unit=backup-open-webui.service
+
+[Install]
+WantedBy=timers.target

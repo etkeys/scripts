@@ -1,0 +1,13 @@
+
+[Unit]
+Description=Backup open webui application
+
+[Service]
+Type=oneshot
+ExecStart=backup-open-webui.sh
+
+# Not having a Install section makes it so the service cannot be
+# enabled and only started from triggers (like timers) or by
+# calling start.
+#[Install]
+#WantedBy=multi-user.target
