@@ -70,7 +70,7 @@ for config_file in "$CONFIG_DIR"/*.conf; do
     # Execute the sync
     echo "Syncing $LOCAL_PATH to $DESTINATION_BUCKET_PATH..."
     # shellcheck disable=SC2086
-    b2 sync --threads 2 $OPTIONS "$LOCAL_PATH" "$DESTINATION_BUCKET_PATH"
+    b2 sync --threads 1 $OPTIONS "$LOCAL_PATH" "$DESTINATION_BUCKET_PATH"
 
     if [ $? -ne 0 ]; then
         echo "Error: Sync failed for $LOCAL_PATH to $DESTINATION_BUCKET_PATH"
