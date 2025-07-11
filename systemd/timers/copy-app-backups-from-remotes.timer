@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Regularly runs operation to backup plex media server
+
+[Timer]
+OnCalendar=THU *-*-* 23:00:00
+RandomizedDelaySec=900
+Unit=copy-app-backups-from-remotes.service
+
+[Install]
+WantedBy=timers.target
