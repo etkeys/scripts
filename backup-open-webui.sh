@@ -86,7 +86,9 @@ else
     echo "compose.yml and .env copied successfully from ${DOCKER_COMPOSE_DIR}" 
 fi
 
-tar -czf "${BACKUP_DIR}/open-webui.${TODAY_DATE}.tar.gz" .
+# "./" is used to ensure the current directory is included in the tarball
+#   but not the actual top-level directory (so it doesn't apply incorrect permissions)
+tar -czf "${BACKUP_DIR}/open-webui.${TODAY_DATE}.tar.gz" ./
 if [ $? -ne 0 ]; then
     echo "Error: Failed to create backup archive in ${BACKUP_DIR}"
     cleanup
