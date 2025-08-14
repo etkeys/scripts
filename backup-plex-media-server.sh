@@ -46,7 +46,8 @@ tar -czf "$TEMP_FILE" \
   --exclude='Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db-wal' \
   --exclude='Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db-journal' \
   --exclude='Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db' \
-  "$PLEX_SERVER_DIR/"
+  -C "$PLEX_SERVER_DIR" \
+  ./
 if [ $? -ne 0 ]; then
     echo "Error creating tar archive. Please check the Plex Media Server directory."
     exit 3
