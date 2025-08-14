@@ -15,7 +15,7 @@
 # - DATASET: the ZFS dataset path to back up
 # - SUBDIR: (optional) subdirectory within the snapshot to back up
 # - OVERRIDE_DESTINATION_NAME: (optional) custom name for the backup directory
-# - RSYNC_EXTRA_ARGS: (optional) additional arguments for rsync
+# - REMOTE_RSYNC_PATH: (optional) value to use for --rsync-path in rsync
 #
 # Options:
 #   -v, --verbose    Enable verbose output
@@ -70,7 +70,8 @@ process_config() {
     local DATASET=""
     local SUBDIR=""
     local OVERRIDE_DESTINATION_NAME=""
-    local RSYNC_EXTRA_ARGS=""
+    local REMOTE_RSYNC_PATH=""
+    local RSYNC_EXTRA_OPTS=()
 
     # Use a full, absolute path or validate the config file location
     # shellcheck disable=SC1090
@@ -117,11 +118,15 @@ process_config() {
 
     local log_file="${LOG_DIR}/${destination_name}.log"
     print_verbose "Log file: ${log_file}"
+
+    if [ -n "${REMOTE_RSYNC_PATH}" ]; then
+        RSYNC_EXTRA_OPTS+=("--rsync-path" "${REMOTE_RSYNC_PATH}")
+    fi
     
     mkdir -p "${destination_dir}"
     rsync -av \
-        ${RSYNC_EXTRA_ARGS} \
-        "${SSH_HOST}:${source_dir}/." \
+        "${RSYNC_EXTRA_OPTS[@]}" \
+        "${SSH_HOST}:${source_dir}/" \
         "${destination_dir}" > "${log_file}" 2>&1
     if [ $? -ne 0 ]; then
         echo "Error: rsync failed for ${config_file} - see log at ${log_file}"
