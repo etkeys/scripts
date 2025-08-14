@@ -2,5 +2,6 @@
 
 firefox \
     --url https://nextcloud.etkeys.me/ \
+    --url https://etkeys.atlassian.net \
     --url http://homeassistant.local:8123/ \
     --url https://www.messenger.com/
