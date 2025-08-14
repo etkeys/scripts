@@ -38,6 +38,8 @@ if [ ! -d "$CONFIG_DIR" ]; then
     exit 1
 fi
 
+umask 027
+
 HAS_FAILURE=false
 for config_file in "$CONFIG_DIR"/*.conf; do
     # Skip if not a file
@@ -89,6 +91,14 @@ for config_file in "$CONFIG_DIR"/*.conf; do
         mkdir -p "$DESTINATION_DIR"
         if [ $? -ne 0 ]; then
             echo "Error: Failed to create destination directory $DESTINATION_DIR"
+            HAS_FAILURE=true
+            continue
+        fi
+
+        chgrp adm "$DESTINATION_DIR"
+        chmod g+s "$DESTINATION_DIR"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to set group for destination directory $DESTINATION_DIR"
             HAS_FAILURE=true
             continue
         fi
