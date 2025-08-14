@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Regularly run service to backup configured applications
+
+[Timer]
+OnCalendar=TUE *-*-* 23:00:00
+RandomizeDelaySec=900
+Unit=backup-apps.service
+
+[Install]
+WantedBy=timers.target

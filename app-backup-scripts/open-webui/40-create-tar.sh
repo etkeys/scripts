@@ -35,7 +35,7 @@ fi
 
 # "./" is used to ensure the current directory is included in the tarball
 #   but not the actual top-level directory (so it doesn't apply incorrect permissions)
-tar -czf "${BACKUP_DIR}/open-webui.${BACKUP_DATETIME}.tar.gz" ./
+tar -czf "${BACKUP_DIR}/open-webui.${BACKUP_DATETIME}.tar.gz" -C "${TEMP_DIR}" ./
 if [ $? -ne 0 ]; then
     echo "Error: Failed to create backup archive in ${BACKUP_DIR}"
     exit 2
