@@ -29,7 +29,7 @@ if [ -z "${DOCKER_LITELLMDB_CONTAINER}" ]; then
 fi
 
 docker exec -t "${DOCKER_LITELLMDB_CONTAINER}" \
-    pg_dump -c -U postgres -d litellm |
+    pg_dump -c -U llmproxy -d litellm |
     gzip > "${TEMP_DIR}/litellm-db.sql.gz"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to dump the database from container ${DOCKER_LITELLMDB_CONTAINER}"
