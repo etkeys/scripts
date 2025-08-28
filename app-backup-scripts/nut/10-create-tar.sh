@@ -44,7 +44,7 @@ fi
 
 # "./" is used to ensure the current directory is included in the tarball
 #   but not the actual top-level directory (so it doesn't apply incorrect permissions)
-tar -czf "${BACKUP_DIR}/caddy.${BACKUP_DATETIME}.tar.gz" \
+tar -czf "${BACKUP_DIR}/nut.${BACKUP_DATETIME}.tar.gz" \
     -C "${TAR_DIR}" \
     ./
 if [ $? -ne 0 ]; then

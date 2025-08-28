@@ -106,3 +106,11 @@ for APP_CONFIG in "${CONFIG_DIR}"/*.conf; do
 
     cleanup "${TEMP_DIR}"
 done
+
+if [[ "${HAS_FAILURE}" == true ]]; then
+    echo "One or more backups failed. Please check the logs above."
+    exit 1
+else
+    echo "All backups completed successfully."
+    exit 0
+fi
