@@ -39,6 +39,8 @@ done
 TARGET_TIMESTAMP=$(date -d "$TIMESTAMP_OFFSET days ago" +%s)
 HAS_FAILURE=false
 
+echo "Pruning snapshots older than $TIMESTAMP_OFFSET days (before $(date -d "@$TARGET_TIMESTAMP"))"
+
 zfs list -Hpt snapshot -s creation -o creation,name |
 while read -r creation_timestamp name; do
     # Skip this snapshot if it contains '-' after '@'
