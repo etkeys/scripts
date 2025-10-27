@@ -1,0 +1,4 @@
+
+name: nut
+vars:
+  tar_dir: /etc/nut

@@ -1,0 +1,5 @@
+
+name: caddy
+requires_temp_dir: false
+vars:
+  tar_dir: /etc/caddy

@@ -1,0 +1,6 @@
+name: open-webui
+requires_temp_dir: true
+vars:
+  container_names:
+    litellm_db: open-webui-prod_litellm-db
+    open_webui: open-webui-prod_open-webui
