@@ -1,0 +1,4 @@
+
+name: wolnut
+vars:
+  tar_dir: /etc/wolnut
