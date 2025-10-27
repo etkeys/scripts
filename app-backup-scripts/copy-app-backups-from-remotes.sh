@@ -105,6 +105,7 @@ for config_file in "$CONFIG_DIR"/*.conf; do
     fi
 
     rsync \
+        --recursive \
         --itemize-changes \
         --times \
         --rsh="ssh -i $SSH_IDENTITY_FILE -o UserKnownHostsFile=$SSH_KNOWN_HOSTS_FILE" \
