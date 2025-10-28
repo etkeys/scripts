@@ -1,0 +1,4 @@
+
+name: samba
+vars:
+  tar_dir: /etc/samba
