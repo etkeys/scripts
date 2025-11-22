@@ -1,0 +1,6 @@
+
+name: portainer
+vars:
+  api_root_url: https://localhost:9443/api
+  username: backup_user
+  password: secure_password

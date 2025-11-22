@@ -4,7 +4,7 @@ if [ ! -d /usr/local/etc/backup-apps ]; then
     echo "Creating configuration directory for backup-apps..."
     sudo mkdir -p /usr/local/etc/backup-apps
     sudo touch /usr/local/etc/backup-apps/config.yml
-    sudo chmod g+w /usr/local/etc/backup-apps/config.yml
+    sudo chmod 660 /usr/local/etc/backup-apps/config.yml
     sudo chgrp adm /usr/local/etc/backup-apps/config.yml
 fi
 
