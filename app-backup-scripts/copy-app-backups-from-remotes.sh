@@ -38,6 +38,32 @@ if [ ! -d "$CONFIG_DIR" ]; then
     exit 1
 fi
 
+cleanup_directory() {
+    local dir="$1"
+    local max_files=10
+
+    echo "Cleaning up directory: $dir"
+
+    local file_count
+    file_count=$(find "$dir" -maxdepth 1 -type f | wc -l)
+
+    if (( file_count <= max_files )); then
+        echo "    File count ($file_count) is within limit ($max_files)."
+    else
+        find "$dir" -maxdepth 1 -type f -printf '%f\n' | sort | head -n $((file_count - max_files)) |
+        while read -r file; do
+            local filepath="$dir/$file"
+            echo "    Removing old backup file: $filepath"
+            rm -f "$filepath"
+        done
+    fi
+
+    find "$dir" -maxdepth 1 -type d ! -name "$(basename $dir)" |
+    while read -r subdir; do
+        cleanup_directory "$subdir"
+    done
+}
+
 umask 027
 
 HAS_FAILURE=false
@@ -118,13 +144,7 @@ for config_file in "$CONFIG_DIR"/*.conf; do
         echo "Successfully copied files from $REMOTE_HOST:$REMOTE_DIR to $DESTINATION_DIR"
     fi
 
-    COUNT_FILES=$(ls -1 "$DESTINATION_DIR" | wc -l)
-    while [ $COUNT_FILES -gt 10 ]; do
-        OLDEST_FILE=$(ls -1 "$DESTINATION_DIR" | head -1)
-        echo "Removing oldest backup file: $OLDEST_FILE"
-        rm -f "$DESTINATION_DIR/$OLDEST_FILE"
-        COUNT_FILES=$(ls -1 "$DESTINATION_DIR" | wc -l)
-    done
+    cleanup_directory "$DESTINATION_DIR"
 
     echo "Done processing $config_file."
 done

@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Tuple
 
 BACKUP_DIR_ROOT = Path(os.environ.get('BACKUP_DIR', '/var/local/backups'))
 CONFIG_PATH = Path(os.environ.get('CONFIG_PATH', '/usr/local/etc/backup-apps/config.yml'))
+KEEP_PREVIOUS_BACKUPS = int(os.environ.get('KEEP_PREVIOUS_BACKUPS', '0'))
 SCRIPT_DIR = Path(os.environ.get('SCRIPT_DIR', '/usr/local/lib/backup-apps'))
 
 class CoreProcessor:
@@ -116,10 +117,14 @@ class CoreProcessor:
             if not os.path.isdir(backup_dir):
                 os.makedirs(backup_dir)
             else:
-                for filename in os.listdir(backup_dir):
-                    file_path = backup_dir / filename
-                    if os.path.isfile(file_path):
-                        os.remove(file_path)
+                previous_backups = sorted([f for f in os.listdir(backup_dir) if os.path.isfile(backup_dir / f)])
+                if KEEP_PREVIOUS_BACKUPS > 0 and len(previous_backups) > KEEP_PREVIOUS_BACKUPS:
+                    num_to_delete = len(previous_backups) - KEEP_PREVIOUS_BACKUPS
+                    previous_backups = previous_backups[:num_to_delete]
+                    for filename in previous_backups:
+                        file_path = backup_dir / filename
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
 
             # update vars_dict with additional variables
             vars_dict.update(kwargs)
