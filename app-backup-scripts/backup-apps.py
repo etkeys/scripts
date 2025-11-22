@@ -83,6 +83,14 @@ class CoreProcessor:
         results = []
         for doc in documents:
             name = doc.get('name', None)
+
+            if not name:
+                results.append(("config", False, "Document missing 'name' field."))
+                continue
+            if doc.get('disabled', False):
+                results.append(("config", True, f"Skipping '{name}' (disabled)."))
+                continue
+
             backup_dir = BACKUP_DIR_ROOT / name
             success, message = self.process_document(doc,
                                                      backup_date=backup_date,
