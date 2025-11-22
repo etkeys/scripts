@@ -1,0 +1,4 @@
+
+name: plexmediaserver
+vars:
+  tar_dir: /var/snap/plexmediaserver/common/Library/Application Support/Plex Media Server
