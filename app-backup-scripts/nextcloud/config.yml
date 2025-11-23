@@ -1,0 +1,5 @@
+
+name: nextcloud
+requires_temp_dir: false
+vars:
+  tar_dir: /usr/local/lib/nextcloud.etkeys.me
