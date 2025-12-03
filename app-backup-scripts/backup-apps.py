@@ -103,6 +103,7 @@ class CoreProcessor:
         """Process a single document from the config."""
 
         name = doc.get('name')
+        handler_module = doc.get('module', name)
         make_temp_dir = doc.get('requires_temp_dir', False)
         vars_dict = doc.get('vars', {})
         backup_dir = kwargs.get('backup_dir')
@@ -112,7 +113,7 @@ class CoreProcessor:
 
         try:
             # Load the module dynamically
-            module = self.load_module(name)
+            module = self.load_module(handler_module)
 
             # Get the processor class
             processor_class = self.get_processor_class(module, name)

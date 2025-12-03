@@ -1,0 +1,15 @@
+
+name: wled-1
+module: wled
+requires_temp_dir: true
+vars:
+  controller_ip: 192.168.1.199
+
+---
+
+name: wled-2
+module: wled
+requires_temp_dir: true
+vars:
+  controller_ip: 192.168.1.198
+
