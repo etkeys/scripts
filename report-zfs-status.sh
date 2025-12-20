@@ -12,6 +12,16 @@ print_core_status() {
     zfs list
 }
 
+print_drive_temps() {
+    echo "----------------------"
+    echo "Drive temperatures (in Celsius):"
+    echo "/dev/sdb: $(sudo smartctl -A /dev/sdb | grep "Temperature_Celsius" | awk '{print $4}' | sed 's/^0*//')"
+    echo "/dev/sdc: $(sudo smartctl -A /dev/sdc | grep "Temperature_Celsius" | awk '{print $4}' | sed 's/^0*//')"
+    echo "/dev/sdd: $(sudo smartctl -A /dev/sdd | grep "Temperature_Celsius" | awk '{print $4}' | sed 's/^0*//')"
+    echo "/dev/sde: $(sudo smartctl -A /dev/sde | grep "Temperature_Celsius" | awk '{print $4}' | sed 's/^0*//')"
+    echo "/dev/sdf: $(sudo smartctl -A /dev/sdf | grep "Temperature_Celsius" | awk '{print $4}' | sed 's/^0*//')"
+}
+
 print_snapshot_status() {
     echo "----------------------"
 
@@ -55,5 +65,6 @@ done
 
 if [ "$LIST_ALL_SNAPSHOTS" = false ]; then
     print_core_status
+    print_drive_temps
 fi
 print_snapshot_status
