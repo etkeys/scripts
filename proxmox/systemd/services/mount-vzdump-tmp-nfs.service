@@ -1,0 +1,12 @@
+[Unit]
+Description=Mount the tmp directory for vzdump over nfs
+Requires=zfs-mount.service nfs-server.service nfs-client.target
+After=zfs-mount.service nfs-server.service nfs-client.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=mount 127.0.0.1:/vmpool/backups/tmp /mnt/test
+
+[Install]
+WantedBy=multi-user.target

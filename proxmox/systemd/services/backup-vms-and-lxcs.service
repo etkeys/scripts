@@ -1,0 +1,7 @@
+[Unit]
+Description=Performs backup of specified VMs and LXCs
+After=zfs-mount.service
+
+[Service]
+Type=oneshot
+ExecStart=create-vm-lxc-backups.sh

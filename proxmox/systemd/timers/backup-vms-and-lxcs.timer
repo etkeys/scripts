@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Performs backup of specified VMs and LXCs
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+RandomizedDelaySec=300
+Unit=backup-vms-and-lxcs.service
+
+[Install]
+WantedBy=timers.target

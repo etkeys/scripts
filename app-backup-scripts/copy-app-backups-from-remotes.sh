@@ -24,6 +24,8 @@
 #     SSH_IDENTITY_FILE   - Path to SSH private key file
 #     SSH_KNOWN_HOSTS_FILE - Path to SSH known hosts file
 #     SSH_USER            - Username for SSH connection
+#     ONLY_LATEST        - (optional) "true" to copy only the latest backup
+#     ONLY_LATEST_PATTERN - (optional) Pattern to identify latest backup files (default: "*", any file)
 #
 # Exit codes:
 #   0   - Success (all configurations processed successfully)
@@ -77,6 +79,9 @@ for config_file in "$CONFIG_DIR"/*.conf; do
     SSH_IDENTITY_FILE=""
     SSH_KNOWN_HOSTS_FILE=""
     SSH_USER=""
+    PROXMOX_ONLY_LATEST="false"
+    PROXMOX_LATEST_FILE=""
+    BACKUP_VM_LXC_ID=""
 
     source "$config_file"
 
@@ -130,13 +135,32 @@ for config_file in "$CONFIG_DIR"/*.conf; do
         fi
     fi
 
-    rsync \
-        --recursive \
-        --itemize-changes \
-        --times \
-        --rsh="ssh -i $SSH_IDENTITY_FILE -o UserKnownHostsFile=$SSH_KNOWN_HOSTS_FILE" \
-        $SSH_USER@$REMOTE_HOST:"$REMOTE_DIR"/* \
-        "$DESTINATION_DIR"
+    if [ "$PROXMOX_ONLY_LATEST" = "true" ]; then
+        echo "Only latest proxmox VM/LXC backup will be copied from $REMOTE_HOST:$REMOTE_DIR"
+        BACKUP_VM_LXC_ID=$REMOTE_DIR # for PROXMOX backups, REMOTE_DIR is actually the VM/LXC ID
+        export BACKUP_VM_LXC_ID
+        PROXMOX_LATEST_FILE=$(ssh -i "$SSH_IDENTITY_FILE_PROXMOX_LIST" -o UserKnownHostsFile="$SSH_KNOWN_HOSTS_FILE" -o SendEnv=BACKUP_VM_LXC_ID "$SSH_USER@$REMOTE_HOST")
+        if [ -z "$PROXMOX_LATEST_FILE" ]; then
+            echo "Error: No files found in $REMOTE_DIR on $REMOTE_HOST"
+            HAS_FAILURE=true
+            continue
+        fi
+        REMOTE_DIR="$REMOTE_DIR/$PROXMOX_LATEST_FILE"
+        echo "Latest file to copy: $REMOTE_DIR"
+        rsync \
+            --times \
+            --rsh="ssh -i $SSH_IDENTITY_FILE -o UserKnownHostsFile=$SSH_KNOWN_HOSTS_FILE" \
+            $SSH_USER@$REMOTE_HOST:"$REMOTE_DIR" \
+            "$DESTINATION_DIR"
+    else
+        rsync \
+            --recursive \
+            --itemize-changes \
+            --times \
+            --rsh="ssh -i $SSH_IDENTITY_FILE -o UserKnownHostsFile=$SSH_KNOWN_HOSTS_FILE" \
+            $SSH_USER@$REMOTE_HOST:"$REMOTE_DIR"/* \
+            "$DESTINATION_DIR"
+    fi
     if [ $? -ne 0 ]; then
         echo "Error: Failed to copy files from $REMOTE_HOST:$REMOTE_DIR to $DESTINATION_DIR"
         HAS_FAILURE=true
