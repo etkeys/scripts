@@ -1,0 +1,22 @@
+# based on stack overflow
+# https://unix.stackexchange.com/a/755850
+# Usage:
+# systemctl enable unlock-zfs-dataset-with-passphrase@<dataset name>.service
+# NOTE:
+# For <dataset name>, use "-" character to replace "/" character. So for
+# an actual dataset name "tank/dataset1", enable/disable the service using
+# "tank-dataset1".
+
+[Unit]
+Description=Load encryption key for dataset %I and mount it
+Requires=network-online.target zfs.target
+After=network-online.target zfs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=DATASET=%I
+ExecStart=/usr/local/sbin/unlock-zfs-dataset-using-passphrase.sh
+
+[Install]
+WantedBy=multi-user.target

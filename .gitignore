@@ -1,2 +1,3 @@
 *.out
 youtubedl.sh
+**/*.secret
