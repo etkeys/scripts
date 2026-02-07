@@ -1,12 +1,16 @@
 
 [Unit]
 Description=Backup local folders to objects storage buckets
-After=zfs-mount.service network.target
+Requires=zfs.target network-online.target
+After=zfs.target network-online.target
 
 [Service]
 Type=oneshot
+Environment=DATASET=tank/secrets/b2
+ExecStartPre=/usr/local/sbin/unlock-zfs-dataset-with-passphrase.sh
 ExecStart=backup-to-object-storage.sh
-User=erik
+ExecStopPost=zfs unmount tank/secrets/b2
+ExecStopPost=-zfs unload-key tank/secrets/b2
 
 # Not having a Install section makes it so the service cannot be
 # enabled and only started from triggers (like timers) or by
