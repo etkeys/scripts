@@ -33,7 +33,7 @@ for item in "${items_to_backup[@]}"; do
     fi
 
     echo "Creating backup for VM/LXC container: $item"
-    vzdump "$item" --dumpdir "$backup_dir" --mode snapshot --compress zstd --quiet 1
+    vzdump "$item" --dumpdir "$backup_dir" --mode stop --compress zstd
     if [ $? -eq 0 ]; then
         echo "Backup for VM/LXC container $item created successfully."
 
