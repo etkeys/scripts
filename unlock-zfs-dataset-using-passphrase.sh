@@ -153,25 +153,16 @@ if [ -z "$MQTT_BROKER_IP" ] || [ -z "$MQTT_BROKER_PORT" ] || [ -z "$MQTT_USERNAM
 fi
 
 # get encrypted passphrase from MQTT broker
-# first send request to broker
-mosquitto_pub \
+ENCRYPTED_PASSPHRASE=$(mosquitto_rr \
     --host "$MQTT_BROKER_IP" \
     --port "$MQTT_BROKER_PORT" \
     --username "$MQTT_USERNAME" \
     --pw "$MQTT_PASSWORD" \
+    -e "$MQTT_TOPIC_RESPONSE" \
     --topic "$MQTT_TOPIC_REQUEST" \
     --message "$DATASET" \
-    --qos 1
+    -W 10)
 
-# then subscribe to response topic to get the encrypted passphrase
-ENCRYPTED_PASSPHRASE=$(mosquitto_sub \
-    --host "$MQTT_BROKER_IP" \
-    --port "$MQTT_BROKER_PORT" \
-    --username "$MQTT_USERNAME" \
-    --pw "$MQTT_PASSWORD" \
-    --topic "$MQTT_TOPIC_RESPONSE" \
-    -W 10 \
-    -C 1)
 if [ -z "$ENCRYPTED_PASSPHRASE" ]; then
     echo "Failed to retrieve encrypted passphrase from MQTT broker."
     exit 1
