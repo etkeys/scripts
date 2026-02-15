@@ -25,12 +25,16 @@ MQTT_USERNAME=""
 MQTT_PASSWORD=""
 MQTT_TOPIC_REQUEST=""
 MQTT_TOPIC_RESPONSE=""
+MOSQUITTO_CONTAINER=""
 
 print_usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
 OPTIONS:
+    -c, --mosquitto-container <name>     Docker container name running mosquitto
+                                         (only if mosquitto tools are in a
+                                         docker container)
     -d, --dataset <dataset>              ZFS dataset to unlock (can also use
                                          DATASET env var)
     -k, --key-sources <sources>          Comma-separated list of key source IPs
@@ -56,6 +60,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -m|--mqtt-credentials)
             MQTT_CREDENTIALS_FILE="$2"
+            shift 2
+            ;;
+        -c|--mosquitto-container)
+            MOSQUITTO_CONTAINER="$2"
             shift 2
             ;;
         -v|--verbose)
@@ -152,8 +160,15 @@ if [ -z "$MQTT_BROKER_IP" ] || [ -z "$MQTT_BROKER_PORT" ] || [ -z "$MQTT_USERNAM
     exit 1
 fi
 
+# Prepare command prefix to run mosquitto tools natively or inside a docker container
+if [ -n "$MOSQUITTO_CONTAINER" ]; then
+    CMD_PREFIX=(docker exec -i "$MOSQUITTO_CONTAINER")
+else
+    CMD_PREFIX=()
+fi
+
 # get encrypted passphrase from MQTT broker
-ENCRYPTED_PASSPHRASE=$(mosquitto_rr \
+ENCRYPTED_PASSPHRASE=$("${CMD_PREFIX[@]}" mosquitto_rr \
     --host "$MQTT_BROKER_IP" \
     --port "$MQTT_BROKER_PORT" \
     --username "$MQTT_USERNAME" \
