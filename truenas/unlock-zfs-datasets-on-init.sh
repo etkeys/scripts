@@ -10,7 +10,7 @@ fi
 
 DATASETS_ARRAY=()
 KEY_SOURCES=""
-LOG_FILE="/tmp/unlock-zfs-datasets-on-init$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="/tmp/unlock-zfs-datasets-on-init.$(date +%Y%m%d_%H%M%S).log"
 MOSQUITTO_CONTAINER=""
 MQTT_CREDENTIALS_FILE=""
 UNLOCK_SCRIPT=""
@@ -60,7 +60,7 @@ if [ ! -f "$MQTT_CREDENTIALS_FILE" ]; then
 fi
 
 echo "Waiting for Mosquitto container to be ready..." | tee -a "$LOG_FILE"
-if ! wait_for_container "$MOSQUITTO_CONTAINER" 60 2; then
+if ! wait_for_container "$MOSQUITTO_CONTAINER" 120 2; then
     echo "Error: Mosquitto container '$MOSQUITTO_CONTAINER' is not ready" | tee -a "$LOG_FILE"
     exit 1
 fi
