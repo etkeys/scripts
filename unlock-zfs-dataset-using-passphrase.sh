@@ -6,39 +6,103 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-VERBOSE=false
+# Store environment variable values if they exist
+_KEY_SOURCES_ENV="${KEY_SOURCES}"
+_DATASET_ENV="${DATASET}"
+_MQTT_CREDENTIALS_FILE_ENV="${MQTT_CREDENTIALS_FILE}"
 
-KEY_SOURCES=${KEY_SOURCES:?"Environment variable KEY_SOURCES is not set. It should contain a comma-separated list of key source IPs."}
-DATASET=${DATASET:?"Environment variable DATASET is not set. It should contain the ZFS dataset to unlock."}
+VERBOSE=false
+KEY_SOURCES=""
+DATASET=""
+MQTT_CREDENTIALS_FILE=""
 PASSPHRASE=""
 export DECRYPT_KEY=""
 export ENCRYPTED_PASSPHRASE=""
 
-MQTT_CREDENTIALS_FILE="${MQTT_CREDENTIALS_FILE:?"Environment variable MQTT_CREDENTIALS_FILE is not set. It should contain the path to the MQTT credentials file."}"
 MQTT_BROKER_IP=""
 MQTT_BROKER_PORT=""
 MQTT_USERNAME=""
 MQTT_PASSWORD=""
 MQTT_TOPIC_REQUEST=""
 MQTT_TOPIC_RESPONSE=""
+MOSQUITTO_CONTAINER=""
+
+print_usage() {
+    cat << EOF
+Usage: $0 [OPTIONS]
+
+OPTIONS:
+    -c, --mosquitto-container <name>     Docker container name running mosquitto
+                                         (only if mosquitto tools are in a
+                                         docker container)
+    -d, --dataset <dataset>              ZFS dataset to unlock (can also use
+                                         DATASET env var)
+    -k, --key-sources <sources>          Comma-separated list of key source IPs
+                                         (can also use KEY_SOURCES env var)
+    -m, --mqtt-credentials <file>        Path to MQTT credentials file (can also
+                                         use MQTT_CREDENTIALS_FILE env var)
+    -v, --verbose                        Enable verbose output
+    -h, --help                           Show this help message
+
+Command line arguments take precedence over environment variables.
+EOF
+}
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        -k|--key-sources)
+            KEY_SOURCES="$2"
+            shift 2
+            ;;
+        -d|--dataset)
+            DATASET="$2"
+            shift 2
+            ;;
+        -m|--mqtt-credentials)
+            MQTT_CREDENTIALS_FILE="$2"
+            shift 2
+            ;;
+        -c|--mosquitto-container)
+            MOSQUITTO_CONTAINER="$2"
+            shift 2
+            ;;
         -v|--verbose)
             VERBOSE=true
             shift
             ;;
-        # -h|--help)
-        #     print_usage
-        #     exit 0
-        #     ;;
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
         *)
-            write_log "Unknown option: $1"
-            # print_usage
+            echo "Unknown option: $1"
+            print_usage
             exit 2
             ;;
     esac
 done
+
+# Fall back to environment variables if command line arguments weren't provided
+[ -z "$KEY_SOURCES" ] && KEY_SOURCES="$_KEY_SOURCES_ENV"
+[ -z "$DATASET" ] && DATASET="$_DATASET_ENV"
+[ -z "$MQTT_CREDENTIALS_FILE" ] && MQTT_CREDENTIALS_FILE="$_MQTT_CREDENTIALS_FILE_ENV"
+
+# Validate that all required variables are set
+if [ -z "$KEY_SOURCES" ]; then
+    echo "Error: KEY_SOURCES not provided via command line or environment variable"
+    print_usage
+    exit 1
+fi
+if [ -z "$DATASET" ]; then
+    echo "Error: DATASET not provided via command line or environment variable"
+    print_usage
+    exit 1
+fi
+if [ -z "$MQTT_CREDENTIALS_FILE" ]; then
+    echo "Error: MQTT_CREDENTIALS_FILE not provided via command line or environment variable"
+    print_usage
+    exit 1
+fi
 
 if [ ! -f "$MQTT_CREDENTIALS_FILE" ]; then
     echo "MQTT credentials file not found: $MQTT_CREDENTIALS_FILE"
@@ -48,6 +112,10 @@ fi
 
 ping_key_source() {
     local ip="$1"
+    if grep -q "^$ip\s" /proc/net/arp; then
+        print_verbose "IP $ip is in ARP table, skipping ping"
+        return 0
+    fi
     ping -c 4 -W 2 "$ip" &> /dev/null
     return $?
 }
@@ -96,26 +164,24 @@ if [ -z "$MQTT_BROKER_IP" ] || [ -z "$MQTT_BROKER_PORT" ] || [ -z "$MQTT_USERNAM
     exit 1
 fi
 
+# Prepare command prefix to run mosquitto tools natively or inside a docker container
+if [ -n "$MOSQUITTO_CONTAINER" ]; then
+    CMD_PREFIX=(docker exec -i "$MOSQUITTO_CONTAINER")
+else
+    CMD_PREFIX=()
+fi
+
 # get encrypted passphrase from MQTT broker
-# first send request to broker
-mosquitto_pub \
+ENCRYPTED_PASSPHRASE=$("${CMD_PREFIX[@]}" mosquitto_rr \
     --host "$MQTT_BROKER_IP" \
     --port "$MQTT_BROKER_PORT" \
     --username "$MQTT_USERNAME" \
     --pw "$MQTT_PASSWORD" \
+    -e "$MQTT_TOPIC_RESPONSE" \
     --topic "$MQTT_TOPIC_REQUEST" \
     --message "$DATASET" \
-    --qos 1
+    -W 10)
 
-# then subscribe to response topic to get the encrypted passphrase
-ENCRYPTED_PASSPHRASE=$(mosquitto_sub \
-    --host "$MQTT_BROKER_IP" \
-    --port "$MQTT_BROKER_PORT" \
-    --username "$MQTT_USERNAME" \
-    --pw "$MQTT_PASSWORD" \
-    --topic "$MQTT_TOPIC_RESPONSE" \
-    -W 10 \
-    -C 1)
 if [ -z "$ENCRYPTED_PASSPHRASE" ]; then
     echo "Failed to retrieve encrypted passphrase from MQTT broker."
     exit 1
