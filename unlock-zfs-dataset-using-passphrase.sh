@@ -112,6 +112,10 @@ fi
 
 ping_key_source() {
     local ip="$1"
+    if grep -q "^$ip\s" /proc/net/arp; then
+        print_verbose "IP $ip is in ARP table, skipping ping"
+        return 0
+    fi
     ping -c 4 -W 2 "$ip" &> /dev/null
     return $?
 }
