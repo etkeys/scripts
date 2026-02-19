@@ -1,0 +1,16 @@
+
+[Unit]
+Description=%i zfs snapshot for configured datasets
+Documentation=man:zfs-snapshot(8)
+
+[Timer]
+OnCalendar=Sat *-*-* 05:00:00
+RandomizedDelaySec=2m
+
+# remove this if you don't want to run for missed
+# events due to system being off
+Persistent=true
+
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Create %i ZFS snapshot for configured datasets
+Requires=zfs.target
+After=zfs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/create-zfs-snapshots2.sh %i
