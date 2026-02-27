@@ -7,7 +7,7 @@ Description=Regularly runs operation to sync media store with object storage
 # of the month (because of zfs scrubs)
 OnCalendar=Mon..Sun *-*-1..14,22..31 23:25:00
 OnCalendar=Mon..Fri,Sun *-*-15..21 23:25:00
-Unit=backup-to-object-storage.sh
+Unit=my-backup-to-object-storage.sh
 
 [Install]
 WantedBy=timers.target

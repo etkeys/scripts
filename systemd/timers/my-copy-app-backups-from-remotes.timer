@@ -4,7 +4,7 @@ Description=Regularly runs operation to backup plex media server
 
 [Timer]
 OnCalendar=Fri *-*-* 23:05:00
-Unit=copy-app-backups-from-remotes.service
+Unit=my-copy-app-backups-from-remotes.service
 
 [Install]
 WantedBy=timers.target
