@@ -71,6 +71,7 @@ class BackupExecutor:
         self.verbose = verbose
         self.destination_root = Path(destination_root)
         self.snapshot_name = ""
+        self.snapshot_date = ""
         self.snapshot_backup_dir = ""
         self.log_dir = ""
 
@@ -270,10 +271,12 @@ class BackupExecutor:
 
         # Extract snapshot names
         snapshots = [line.split('@')[1] for line in snapshots.split('\n') if line]
+        snapshots = filter(lambda x: x.startswith('auto-weekly-'), snapshots)
         snapshots = sorted(set(snapshots))
         self.snapshot_name = snapshots[-1]  # Use the latest snapshot
+        self.snapshot_date = self.snapshot_name.replace('auto-weekly-', '')
 
-        self.snapshot_backup_dir = self.destination_root / self.snapshot_name
+        self.snapshot_backup_dir = self.destination_root / self.snapshot_date
 
         # create snapshot backup dir if it doesn't exist
         try:
