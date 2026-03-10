@@ -1,0 +1,6 @@
+
+name: usr-local-etc
+module: tar
+requires_temp_dir: false
+vars:
+  tar_dir: /usr/local/etc
