@@ -3,7 +3,7 @@
 set -e
 
 SOURCE_DIR="${HOME}/Videos/rip/send"
-DESTINATION_DIR="media002:/media/media-share"
+DESTINATION_DIR="nas001:/mnt/naspool/media_share"
 
 rsync \
     --recursive \
