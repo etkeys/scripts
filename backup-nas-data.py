@@ -64,7 +64,7 @@ ENO_OTHER = 100
 
 # Configuration
 DEFAULT_BACKUP_ROOT_DIR = Path.home() / "nas_backup"
-SSH_HOST = "media002"
+SSH_HOST = "nas001"
 
 class BackupExecutor:
     def __init__(self, destination_root: str, verbose: bool = False):
