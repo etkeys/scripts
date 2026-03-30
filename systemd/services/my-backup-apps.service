@@ -6,6 +6,9 @@ Description=Backup configured applications
 Type=oneshot
 ExecStart=backup-apps.py
 Environment=PYTHONDONTWRITEBYTECODE=1
+#Environment=BACKUP_DIR=/path/where/to/place/backups
+#Environment=KEEP_PREVIOUS_BACKUPS=10
+
 
 # Not having a Install section makes it so the service cannot be
 # enabled and only started from triggers (like timers) or by
