@@ -5,4 +5,4 @@ After=zfs.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/create-zfs-snapshots2.sh %i
+ExecStart=/usr/local/sbin/create-zfs-snapshots.sh %i
