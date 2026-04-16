@@ -3,10 +3,10 @@
 Description=Regularly runs operation to sync media store with object storage
 
 [Timer]
-# Run every day, except the third saturday
+# Run every day, except the third sunday
 # of the month (because of zfs scrubs)
-OnCalendar=Mon..Sun *-*-1..14,22..31 23:25:00
-OnCalendar=Mon..Fri,Sun *-*-15..21 23:25:00
+OnCalendar=Mon..Sun *-*-1..14,22..31 00:30:00
+OnCalendar=Mon..Sat *-*-15..21 00:30:00
 Unit=my-backup-to-object-storage.sh
 
 [Install]

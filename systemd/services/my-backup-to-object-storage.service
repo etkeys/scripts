@@ -6,12 +6,16 @@ After=zfs.target network-online.target
 
 [Service]
 Type=oneshot
-Environment=DATASET=tank/secrets/b2
+Environment=DATASET=naspool/secrets/b2
 ExecStartPre=/usr/local/sbin/unlock-zfs-dataset-with-passphrase.sh
 ExecStart=backup-to-object-storage.sh
-ExecStopPost=zfs unmount tank/secrets/b2
-ExecStopPost=-zfs unload-key tank/secrets/b2
-TimeoutStartSec=14400
+ExecStopPost=zfs unmount naspool/secrets/b2
+ExecStopPost=-zfs unload-key naspool/secrets/b2
+#TimeoutStartSec=14400
+# Environment=KEY_SOURCES=<ip addresses>
+# Enviornment=MQTT_CREDENTIALS_FILE=/path/to/credentials/file
+# Environment=SYNC_ENCRYPTTION_KEY_FILE=/path/to/sync/encryption/key/file
+# Environment=B2_ACCOUNT_INFO=/path/to/account/info/file
 
 # Not having a Install section makes it so the service cannot be
 # enabled and only started from triggers (like timers) or by
