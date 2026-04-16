@@ -1,4 +1,7 @@
 
 name: plexmediaserver
 vars:
-  tar_dir: /var/snap/plexmediaserver/common/Library/Application Support/Plex Media Server
+  tar_dir: /var/local/docker/plex
+  tar_exclude:
+    - "Library/Application Support/Plex Media Server/Cache/*"
+    - "Library/Application Support/Plex Media Server/Logs/*"

@@ -11,6 +11,7 @@ class Handler:
         try:
             backup_dir = vars_dict.get('backup_dir', None)
             tar_dir = vars_dict.get('tar_dir', None)
+            tar_exclude = vars_dict.get('tar_exclude', [])
             tar_file = vars_dict.get('tar_file', None)
 
             # From caller
@@ -25,8 +26,14 @@ class Handler:
 
             tar_file_full_name = f"{backup_dir}/{tar_file}"
 
+            # Build tar command with exclusions
+            cmd = ["tar", "-czf", tar_file_full_name]
+            for exclude in tar_exclude:
+                cmd.extend(["--exclude", exclude])
+            cmd.extend(["-C", tar_dir, "./"])
+
             proc = subprocess.run(
-                ["tar", "-czf", tar_file_full_name, "-C", tar_dir, "./"],
+                cmd,
                 capture_output=True,
                 text=True
             )
