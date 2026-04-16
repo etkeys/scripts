@@ -6,7 +6,7 @@ After=zfs-mount.service nfs-server.service nfs-client.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=mount 127.0.0.1:/vmpool/backups/tmp /mnt/test
+ExecStart=mount 127.0.0.1:/vmpool/backups/tmp /mnt/vzdump-tmp
 
 [Install]
 WantedBy=multi-user.target
