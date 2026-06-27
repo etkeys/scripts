@@ -1,0 +1,8 @@
+
+name: crafty
+vars:
+  tar_dir: /var/local/docker/crafty
+  tar_exclude:
+    - "backups/*"
+    - "import/*"
+    - "servers/*"
