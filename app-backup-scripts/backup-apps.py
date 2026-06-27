@@ -4,8 +4,10 @@ import importlib.util
 import grp
 import os
 from pathlib import Path
+import subprocess
 import sys
 import stat
+from shutil import rmtree
 import traceback
 import yaml
 from tempfile import mkdtemp
@@ -65,123 +67,213 @@ class CoreProcessor:
         except Exception as e:
             raise ImportError(f"Failed to load module {name}: {e}")
 
-    def process_config(self, config_path: str) -> List[Tuple[str, bool ,str]]:
+    def make_document_tar_file(
+            self,
+            tar_dir: str,
+            tar_name: str,
+            destination_dir: str,
+            tar_exclude: List[str]) -> bool:
+        """Create a tar file for the document."""
+
+        # we're going to skip parameter validation because this function
+        # is intended to be called internally with validated parameters.
+
+        try:
+            tar_file_full_name = f"{destination_dir}/{tar_name}.tar.zst"
+
+            # Build tar command with exclusions
+            cmd = ["tar", "-c", "--use-compress-program", "zstd -19 -T2", "-f", tar_file_full_name]
+            for exclude in tar_exclude:
+                cmd.extend(["--exclude", exclude])
+            cmd.extend(["-C", tar_dir, "./"])
+
+            proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True
+            )
+            if proc.returncode != 0:
+                self.print_module_message(f"Tar command failed: {proc.stderr.strip()}")
+                return False
+
+        except Exception as e:
+            self.print_module_message(f"Error creating tar file {tar_name}: {e}")
+            return False
+
+        return True
+
+    def print_module_message(self, message: str, level: int = 1):
+        """Print a message with the module name as prefix."""
+        indent = "  " * level
+        print(f"{indent}{message}")
+
+    def print_ok_or_fail(self, print_ok: bool, message: str):
+        if print_ok:
+            print(f"OK: {message}")
+        else:
+            print(f"FAIL: {message}")
+
+    def process_config(self, config_path: str) -> bool:
         """Process the configuration file and execute backup scripts."""
 
+        print(f"Loading config file: {config_path}")
         try:
             documents = self.load_config(config_path)
         except Exception as e:
-            return [("config_load", False, f"Failed to load config: {str(e)}")]
+            print(f"Failed to load config: {e}")
+            return False
 
         os.umask(0o027)  # drwxr-x---, rw-r-----
 
         if not os.path.isdir(BACKUP_DIR_ROOT):
-            return [("backup_dir", False, f"Backup root directory {BACKUP_DIR_ROOT} does not exist. Please create it with the following permissions: drwxr-s--- root:adm")]
+            print(f"Backup root directory {BACKUP_DIR_ROOT} does not exist. Please create it with the following permissions: drwxr-s--- root:adm")
+            return False
 
         backup_date = datetime.now().strftime("%y%m%d")
 
-        results = []
+        result = True
         for doc in documents:
             name = doc.get('name', None)
 
-            if not name:
-                results.append(("config", False, "Document missing 'name' field."))
+            if not name or len(name) < 1:
+                result = False
+                self.print_ok_or_fail(False, "Document missing 'name' field. Skipping.")
                 continue
             if doc.get('disabled', False):
-                results.append(("config", True, f"Skipping '{name}' (disabled)."))
+                self.print_ok_or_fail(True, f"Skipping document {name} (disabled).")
                 continue
 
-            backup_dir = BACKUP_DIR_ROOT / name
-            success, message = self.process_document(doc,
-                                                     backup_date=backup_date,
-                                                     backup_dir=backup_dir)
-            results.append((name, success, message))
+            print(f"Processing document {name}...")
 
-        return results
+            backup_dir = BACKUP_DIR_ROOT / name
+            success = self.process_document(doc,
+                                            backup_date=backup_date,
+                                            backup_dir=backup_dir)
+
+            if not success:
+                result = False
+                self.print_ok_or_fail(False, f"Failed to process document {name}.")
+            else:
+                self.print_ok_or_fail(True, f"Successfully processed document {name}.")
+
+        return result
 
     def process_document(self, doc: Dict[str, Any], **kwargs) -> Tuple[bool, str]:
         """Process a single document from the config."""
 
         name = doc.get('name')
-        handler_module = doc.get('module', name)
+        modules = doc.get('modules', [])
         make_temp_dir = doc.get('requires_temp_dir', False)
+        skip_final_tar = doc.get('skip_final_tar', False)
         vars_dict = doc.get('vars', {})
-        backup_dir = kwargs.get('backup_dir')
+        tar_dir = vars_dict.get('tar_dir')
 
-        if not name or len(name) < 1:
-            return False, "Missing 'name' in document."
+        backup_dir = kwargs.get('backup_dir')
+        tar_file = f"{name}.{kwargs.get('backup_date')}"
+        temp_dir = ""
+
+        # update vars_dict with additional variables
+        vars_dict.update(kwargs)
+        vars_dict['tar_file'] = tar_file
+        vars_dict['backup_dir'] = backup_dir
 
         try:
-            # Load the module dynamically
-            module = self.load_module(handler_module)
+            if make_temp_dir:
+                temp_dir = mkdtemp()
+                vars_dict['temp_dir'] = temp_dir
 
-            # Get the processor class
-            processor_class = self.get_processor_class(module, name)
-            processor = processor_class()
-
-            # Check if the class has a 'run' method
-            if not hasattr(processor, 'run'):
-                return False, f"Processor class in {name}.py missing 'run' method."
-
+            # Create the backup dir or remove previous backups
             if not os.path.isdir(backup_dir):
                 os.makedirs(backup_dir)
             else:
                 previous_backups = sorted([f for f in os.listdir(backup_dir) if os.path.isfile(backup_dir / f)])
                 if KEEP_PREVIOUS_BACKUPS > 0 and len(previous_backups) > KEEP_PREVIOUS_BACKUPS:
-                    num_to_delete = len(previous_backups) - KEEP_PREVIOUS_BACKUPS
-                    previous_backups = previous_backups[:num_to_delete]
-                    for filename in previous_backups:
-                        file_path = backup_dir / filename
-                        if os.path.isfile(file_path):
-                            os.remove(file_path)
+                    previous_backups = previous_backups[:-KEEP_PREVIOUS_BACKUPS]
+                for filename in previous_backups:
+                    filepath = backup_dir / filename
+                    os.remove(filepath)
 
-            # update vars_dict with additional variables
-            vars_dict.update(kwargs)
-            vars_dict['tar_file'] = f"{name}.{kwargs.get('backup_date')}.tar.gz"
+            modules_result = self.process_document_modules(modules, vars_dict)
 
-            if make_temp_dir:
-                temp_dir = mkdtemp()
-                vars_dict['temp_dir'] = temp_dir
-
-            # call the run method with vars_dict
-            proc_result = processor.run(vars_dict)
-
-            # Handle different return types
-            if isinstance(proc_result, bool):
-                if proc_result:
-                    func_result = True, f"Successfully processed {name}"
-                else:
-                    func_result = False, f"Processing failed for {name}"
-            elif isinstance(proc_result, tuple) and len(proc_result) == 2:
-                func_result = proc_result
-            elif isinstance(proc_result, str):
-                func_result = False, proc_result  # Assume string return is an error message
-            else:
-                func_result = True, f"Successfully processed {name}"
-
+            if not skip_final_tar and modules_result:
+                modules_result = self.make_document_tar_file(
+                    temp_dir if temp_dir else tar_dir,
+                    tar_file,
+                    backup_dir,
+                    vars_dict.get('tar_exclude', []))
+            
             if make_temp_dir:
                 try:
-                    os.rmdir(temp_dir)
+                    rmtree(temp_dir, ignore_errors=True)
                 except OSError as e:
                     pass
 
-            return func_result
+            return modules_result
 
         except Exception as e:
-            error_msg = f"Error processing {name}: {str(e)}\n{traceback.format_exc()}"
-            return False, error_msg
+            print(f"Error processing document {name}: {str(e)}\n{traceback.format_exc()}")
+            return False
+
+    def process_document_modules(self, modules: List[str], vars_dict: Dict[str, Any])-> bool:
+        for module_name in modules:
+            try:
+                self.print_module_message(f"Processing module {module_name}...")
+
+                # Load the module dynamically
+                module = self.load_module(module_name)
+
+                # Get the processor class
+                processor_class = self.get_processor_class(module, module_name)
+                processor = processor_class()
+
+                # Check if the class has a 'run' method
+                if not hasattr(processor, 'run'):
+                    self.print_module_message(f"Processor class in {module_name}.py missing 'run' method.")
+                    return False
+
+                # call the run method with vars_dict
+                proc_result = processor.run(vars_dict, lambda x: self.print_module_message(x, 2))
+
+                # Handle different return types
+                if isinstance(proc_result, bool):
+                    if proc_result:
+                        self.print_module_message(f"Successfully processed module {module_name}")
+                    else:
+                        self.print_module_message(f"Processing failed for module {module_name}")
+                        return False
+                elif isinstance(proc_result, tuple):
+                    if len(proc_result) != 2:
+                        self.print_module_message(f"Invalid return type for module {module_name}. Expected a tuple of length 2.")
+                        return False
+                    if proc_result[0]:
+                        self.print_module_message(f"Successfully processed module {module_name}")
+                    else:
+                        self.print_module_message(proc_result[1])
+                        self.print_module_message(f"Processing failed for module {module_name}")
+                        return False
+                elif isinstance(proc_result, str):
+                    # assume that a string return is an error message
+                    self.print_module_message(proc_result)
+                    return False
+                else:
+                    self.print_module_message(f"Successfully processed module {module_name}")
+
+            except Exception as e:
+                self.print_module_message(f"Error occurred while processing module {module_name}: {str(e)}")
+                return False
+
+        return True
 
 def main():
     processor = CoreProcessor()
 
     config_path = CONFIG_PATH
-    results = processor.process_config(config_path)
+    success = processor.process_config(config_path)
 
-    for name, success, message in results:
-        status = "OK" if success else "FAILED"
-        print(f"[{status}] {name}: {message}")
-
-    if any(not success for _, success, _ in results):
+    if success:
+        print("Done.")
+    else:
+        print("A problem occurred during processing.")
         sys.exit(1)
 
 if __name__ == "__main__":

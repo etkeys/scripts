@@ -1,4 +1,6 @@
 name: videodl
+modules:
+  - videodl
 requires_temp_dir: true
 vars:
   container_name: videodl-prod-db-1

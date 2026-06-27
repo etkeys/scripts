@@ -1,5 +1,10 @@
 
 name: portainer
+modules:
+  - portainer
+# portainer creates a tar file for backup,
+# no need to tar again
+skip_final_tar: true
 vars:
   api_root_url: https://localhost:9443/api
   username: backup_user

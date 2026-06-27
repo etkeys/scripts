@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import requests
 import subprocess
 from typing import Dict, Any, Tuple
@@ -10,7 +12,7 @@ class Handler:
         """
         Backup configuration file from WLED controller.
         """
-        print(f"Backing up {file_name} from WLED controller at {controller_ip}...")
+        self._print_func(f"Backing up {file_name} from WLED controller at {controller_ip}...")
 
         url = f"http://{controller_ip}/{file_name}"
 
@@ -22,30 +24,17 @@ class Handler:
         with open(f"{temp_dir}/{file_name}", 'wb') as f:
             f.write(response.content)
 
-        print(f"Successfully backed up {file_name} to {temp_dir}/{file_name}.")
+        self._print_func(f"Successfully backed up {file_name} to {temp_dir}/{file_name}.")
 
-    def _make_tar_file(self, backup_dir: str, tar_dir: str, tar_file: str) -> None:
-        print("Creating final tar file...")
-
-        tar_file_full_name = f"{backup_dir}/{tar_file}"
-
-        proc = subprocess.run(
-            ["tar", "-czf", tar_file_full_name, "-C", tar_dir, "./"],
-            capture_output=True,
-            text=True
-        )
-
-        if proc.returncode != 0:
-            raise Exception(f"Tar command failed: {proc.stderr.strip()}")
-
-        print (f"Successfully created backup: {tar_file_full_name}.")
-
-    def run(self, vars_dict: Dict[str, Any]) -> Tuple[bool, str]:
+    def run(self, vars_dict: Dict[str, Any], print_func: Callable[[str], None]) -> Tuple[bool, str]:
         """
         Process WLED backup with given variables.
         
         Returns a tuple indicating success and a message.
         """
+
+        self._print_func = print_func
+
         try:
             backup_dir = vars_dict.get('backup_dir', None)
             temp_dir = vars_dict.get('temp_dir', None)
@@ -66,8 +55,6 @@ class Handler:
 
             self._backup_file(controller_ip, self._config_file_name, temp_dir)
             self._backup_file(controller_ip, self._presets_file_name, temp_dir)
-
-            self._make_tar_file(backup_dir, temp_dir, tar_file)
 
             return True, f"Backup created successfully."
 

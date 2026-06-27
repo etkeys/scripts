@@ -1,5 +1,8 @@
+from collections.abc import Callable
 import requests
 from typing import Dict, Any, Tuple
+import urllib3
+
 
 class Handler:
     def _get_backup(self, api_url_root: str, password: str, jwt: str) -> Tuple[bytes, str]:
@@ -9,7 +12,7 @@ class Handler:
         Returns a tuple of (backup_data, message).
         """
         try:
-            print("Requesting backup from Portainer API...")
+            self._print_func("Requesting backup from Portainer API...")
 
             headers = {
                 "Authorization": f"Bearer {jwt}"
@@ -25,7 +28,7 @@ class Handler:
             if response.status_code != 200:
                 return None, f"Failed to get backup: HTTP {response.status_code} - {response.text}"
 
-            print("Backup obtained successfully.")
+            self._print_func("Backup obtained successfully.")
             return response.content, None
 
         except Exception as e:
@@ -38,7 +41,7 @@ class Handler:
         Returns a tuple of (token, message).
         """
         try:
-            print("Obtaining JWT token from Portainer API...")
+            self._print_func("Obtaining JWT token from Portainer API...")
 
             post_data = {
                 "Username": username,
@@ -56,18 +59,25 @@ class Handler:
             if not jwt:
                 return None, "JWT token not found in response."
 
-            print("Obtained JWT token successfully.")
+            self._print_func("Obtained JWT token successfully.")
             return jwt, None
 
         except Exception as e:
             return None, f"Exception occurred while obtaining JWT token: {str(e)}"
 
-    def run(self, vars_dict: Dict[str, Any]) -> Tuple[bool, str]:
+    def run(self, vars_dict: Dict[str, Any], print_func: Callable[[str], None]) -> Tuple[bool, str]:
         """
         Process Portainer backup with given variables.
         
         Returns a tuple indicating success and a message.
         """
+
+        self._print_func = print_func
+
+        # We're using HTTPS without certificate verification
+        # The server we're talking to is a self-signed certificate on our private network
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         try:
             backup_dir = vars_dict.get('backup_dir', None)
             tar_file = vars_dict.get('tar_file', None)
@@ -89,6 +99,10 @@ class Handler:
             if not password:
                 return False, "'password' not defined."
 
+            if not tar_file.endswith('.tar.gz'):
+                tar_file += '.tar.gz'
+            tar_file += '.encrypted'
+
             jwt, fail_message = self._get_jwt_token(api_url_root, username, password)
             if fail_message:
                 return False, fail_message
@@ -101,8 +115,8 @@ class Handler:
             with open(tar_path, 'wb') as f:
                 f.write(backup_data)
 
-            print(f"Backup saved to {tar_path}.")
-            return True, f"Backup createdd successfully."
+            self._print_func(f"Backup saved to {tar_path}.")
+            return True, ""
 
         except Exception as e:
             return False, f"Exception occurred during backup process: {str(e)}"

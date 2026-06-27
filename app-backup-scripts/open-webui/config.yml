@@ -1,4 +1,6 @@
 name: open-webui
+modules:
+  - open-webui
 requires_temp_dir: true
 vars:
   container_names:
