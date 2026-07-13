@@ -53,7 +53,7 @@ if [ ! -d "/home/$USERNAME/.ssh" ]; then
     sudo mkdir -p "/home/$USERNAME/.ssh"
 fi
 
-sudo cp "$PUBLIC_KEY" "/home/$USERNAME/.ssh/authorized_keys"
+sudo mv "$PUBLIC_KEY" "/home/$USERNAME/.ssh/authorized_keys"
 sudo chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
 sudo chmod g-rwx,o-rwx "/home/$USERNAME/.ssh"
 
