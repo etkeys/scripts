@@ -1,0 +1,6 @@
+name: crafty-worlds
+modules:
+  - crafty-worlds
+skip_final_tar: true
+vars:
+  worlds_backup_root_dir: /var/local/docker/crafty/backups
