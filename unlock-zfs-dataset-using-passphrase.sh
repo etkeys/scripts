@@ -205,6 +205,17 @@ if [ -z "$PASSPHRASE" ]; then
     exit 1
 fi
 
+# Verify the dataset exists before attempting unlock.
+# Without this check, a missing dataset (e.g. pool not imported) causes the
+# script to silently exit 0 because 'zfs get keystatus' on a nonexistent
+# dataset returns nothing, and the mount loop has zero iterations.
+echo "Verifying ZFS dataset exists: $DATASET"
+if ! zfs list -Ho name "$DATASET" >/dev/null 2>&1; then
+    echo "Error: ZFS dataset does not exist: $DATASET"
+    echo "The pool may not be imported. Check 'zpool list' and 'zpool import'."
+    exit 1
+fi
+
 echo "Attempting to unlock ZFS dataset: $DATASET"
 if zfs get -H -o value keystatus "$DATASET" | grep -q "unavailable"; then
     echo "ZFS dataset is currently locked."

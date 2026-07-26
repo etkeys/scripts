@@ -1,0 +1,15 @@
+[Unit]
+Description=Notify Home Assistant of ZFS unlock failure for %I
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=MQTT_CREDENTIALS_FILE="/usr/local/etc/unlock-zfs-dataset-with-passphrase/mqtt.cred"
+# Environment=KEY_SOURCES=
+# Environment=MQTT_BROKER_IP=
+# Environment=MQTT_BROKER_PORT=
+# Environment=MQTT_TOPIC=
+# Environment=MQTT_TOPIC_RESPONSE=
+# Environment=MOSQUITTO_CONTAINER=""
+# Don't loop — if the notifier itself fails, stop
+ExecStart=/usr/local/sbin/notify-zfs-unlock-failure.sh %I

@@ -11,6 +11,9 @@
 Description=Load encryption key for dataset %I and mount it
 Requires=network-online.target zfs.target
 After=network-online.target zfs.target
+# On fresh system, uncomment this (don't use a drop-in override)
+# On existing systems, use a drop-in override
+#OnFailure=my-notify-zfs-unlock-failure@%i.service
 
 [Service]
 Type=oneshot
