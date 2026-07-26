@@ -16,7 +16,15 @@ After=network-online.target zfs.target
 Type=oneshot
 RemainAfterExit=yes
 Environment=DATASET=%I
+Environment=MQTT_CREDENTIALS_FILE=/usr/local/etc/unlock-zfs-dataset-with-passphrase/mqtt.cred
+# Environment=KEY_SOURCES=
+# Environment=MQTT_BROKER_IP=
+# Environment=MQTT_BROKER_PORT=
+# Environment=MQTT_TOPIC_REQUEST=
+# Environment=MQTT_TOPIC_RESPONSE=
+# Environment=MOSQUITTO_CONTAINER=""
 ExecStart=/usr/local/sbin/unlock-zfs-dataset-using-passphrase.sh
+
 
 [Install]
 WantedBy=multi-user.target

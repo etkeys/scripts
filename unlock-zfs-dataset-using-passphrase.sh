@@ -11,21 +11,26 @@ _KEY_SOURCES_ENV="${KEY_SOURCES}"
 _DATASET_ENV="${DATASET}"
 _MQTT_CREDENTIALS_FILE_ENV="${MQTT_CREDENTIALS_FILE}"
 
+# These should be set by caller
+# MQTT_CREDENTIALS_FILE=""
+# MQTT_BROKER_IP=""
+# MQTT_BROKER_PORT=""
+# MQTT_TOPIC_REQUEST=""
+# MQTT_TOPIC_RESPONSE=""
+# MOSQUITTO_CONTAINER=""
+
 VERBOSE=false
 KEY_SOURCES=""
 DATASET=""
-MQTT_CREDENTIALS_FILE=""
 PASSPHRASE=""
 export DECRYPT_KEY=""
 export ENCRYPTED_PASSPHRASE=""
 
-MQTT_BROKER_IP=""
-MQTT_BROKER_PORT=""
+
+
+# These come from the MQTT credentials file, which is encrypted
 MQTT_USERNAME=""
 MQTT_PASSWORD=""
-MQTT_TOPIC_REQUEST=""
-MQTT_TOPIC_RESPONSE=""
-MOSQUITTO_CONTAINER=""
 
 print_usage() {
     cat << EOF
@@ -150,7 +155,7 @@ done
 
 MQTT_CREDENTIALS_FILE_CONTENTS=$(openssl enc -d -base64 -aes-256-cbc -pbkdf2 -nosalt -in "$MQTT_CREDENTIALS_FILE" -pass env:DECRYPT_KEY 2>/dev/null)
 
-if ! echo "$MQTT_CREDENTIALS_FILE_CONTENTS" | grep -q "MQTT_BROKER_IP="; then
+if ! echo "$MQTT_CREDENTIALS_FILE_CONTENTS" | grep -q "MQTT_USERNAME="; then
     echo "Failed to decrypt MQTT credentials file or invalid format."
     exit 1
 fi
