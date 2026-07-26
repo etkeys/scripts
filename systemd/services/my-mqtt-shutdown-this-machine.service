@@ -1,0 +1,17 @@
+[Unit]
+Description=Runs the mqtt-shutdown-this-machine.sh script to check for a shutdown command via MQTT
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mqtt-shutdown-this-machine.sh
+## These environment variables are required
+#Environment=MQTT_HOST=192.168.1.50
+#Environment=MQTT_USER=your_mqtt_username
+#Environment=MQTT_PASS=your_mqtt_password
+#Environment=MQTT_TOPIC=home/rpi/power
+
+## These environment variables are optional
+#Environment=MQTT_SHUTDOWN_PAYLOAD=SHUTDOWN
+#Environment=MQTT_WAIT_SECONDS=5
