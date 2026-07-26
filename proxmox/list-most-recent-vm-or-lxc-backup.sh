@@ -2,7 +2,7 @@
 
 ID="${BACKUP_VM_LXC_ID:?"Environment variable BACKUP_VM_LXC_ID is not set. It should contain the VM or LXC ID to check for backups."}"
 
-BACKUP_DIR_ROOT="/vmpool/backups"
+BACKUP_DIR_ROOT="/vmbackupspool/data"
 
 if [ ! -d "$BACKUP_DIR_ROOT" ]; then
     echo "Error: Backup directory root $BACKUP_DIR_ROOT does not exist."

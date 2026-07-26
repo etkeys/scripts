@@ -6,7 +6,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-BACKUP_DIR_ROOT="/vmpool/backups"
+BACKUP_DIR_ROOT="/vmbackupspool"
 KEEP_BACKUPS=${KEEP_BACKUPS:-7}  # default to 7 days if not set
 
 # read items to backup from environment variable
@@ -28,8 +28,8 @@ for item in "${items_to_backup[@]}"; do
     # create backup directory for item if it doesn't exist
     backup_dir="${BACKUP_DIR_ROOT}/${item}"
     if [ ! -d "$backup_dir" ]; then
-        echo "Creating backup directory: $backup_dir"
-        mkdir -p "$backup_dir"
+        echo "Backup directory for $backup_dir does not exist."
+        exit 1
     fi
 
     echo "Creating backup for VM/LXC container: $item"
