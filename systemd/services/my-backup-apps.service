@@ -6,6 +6,7 @@ Description=Backup configured applications
 Type=oneshot
 ExecStart=backup-apps.py
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
 #Environment=BACKUP_DIR=/path/where/to/place/backups
 #Environment=KEEP_PREVIOUS_BACKUPS=10
 
