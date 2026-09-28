@@ -1,0 +1,11 @@
+[Unit]
+Description=Sync Obsidian vault to Nextcloud every 5 minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Persistent=true
+Unit=vault-bisync.service
+
+[Install]
+WantedBy=timers.target
