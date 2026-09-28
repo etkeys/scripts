@@ -74,7 +74,6 @@ class Handler:
             if not openwebui_container_name:
                 return False, "'open_webui' not defined in config."
 
-            self._dump_litellm_database(temp_dir, db_container_name)
             self._dump_openwebui_files(temp_dir, openwebui_container_name)
 
             return True, f"Successfully created backup."
