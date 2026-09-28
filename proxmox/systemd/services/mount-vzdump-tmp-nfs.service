@@ -1,7 +1,7 @@
 [Unit]
 Description=Mount the tmp directory for vzdump over nfs
-Requires=zfs-mount.service nfs-server.service nfs-client.target
-After=zfs-mount.service nfs-server.service nfs-client.target
+Requires=my-unlock-zfs-dataset-with-passphrase@vmbackupspool-data.service zfs-mount.service nfs-server.service nfs-client.target
+After=my-unlock-zfs-dataset-with-passphrase@vmbackupspool-data.service zfs-mount.service nfs-server.service nfs-client.target
 
 [Service]
 Type=oneshot
