@@ -1,0 +1,7 @@
+name: ai-price-dashboard
+modules:
+  - ai-price-dashboard
+requires_temp_dir: true
+vars:
+  container_names:
+    ai_price_dashboard: ai-price-dashboard_prod-web
