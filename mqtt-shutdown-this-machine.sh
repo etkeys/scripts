@@ -34,12 +34,14 @@ if [[ "$MESSAGE" == "$SHUTDOWN_PAYLOAD" ]]; then
 
     # Clear the retained message so we don't immediately shut down again
     # the next time the Pi boots.
-    mosquitto_pub \
-        -h "$MQTT_HOST" \
-        -u "$MQTT_USER" \
-        -P "$MQTT_PASS" \
-        -t "$MQTT_TOPIC" \
-        -r -n
+    # NOTE disabled. Control server is responsible for clearing the retained message, so we don't do it here.
+    #       this is to avoid a race condition where the Pi shuts down before the control server can clear the retained message
+    # mosquitto_pub \
+    #     -h "$MQTT_HOST" \
+    #     -u "$MQTT_USER" \
+    #     -P "$MQTT_PASS" \
+    #     -t "$MQTT_TOPIC" \
+    #     -r -n
 
     systemctl poweroff
 else
