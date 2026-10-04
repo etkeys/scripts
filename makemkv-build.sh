@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+TRY_DOUBLE_GUNZIP="false"
+
+if [[ $# -gt 0 && $1 == "--double-gzip" ]]; then
+    TRY_DOUBLE_GUNZIP="true"
+fi
+
 #prompt user for a version number
 read -p "Enter the version number of MakeMKV to build (e.g., 1.17.3): " VERSION_NUMBER
 
@@ -19,8 +25,13 @@ if [[ ! -f "$MAKEMVK_TAR_OSS" ]]; then
     exit 1
 fi
 
-gunzip -c "$MAKEMVK_TAR_BIN" | tar xz
-gunzip -c "$MAKEMVK_TAR_OSS" | tar xz
+if [[ $TRY_DOUBLE_GUNZIP != "true" ]]; then
+    tar xzf "$MAKEMVK_TAR_BIN"
+    tar xzf "$MAKEMVK_TAR_OSS"
+else
+    gunzip -c "$MAKEMVK_TAR_BIN" | tar xz
+    gunzip -c "$MAKEMVK_TAR_OSS" | tar xz
+fi
 
 MAKEMKV_BIN_DIR="makemkv-bin-$VERSION_NUMBER"
 MAKEMKV_OSS_DIR="makemkv-oss-$VERSION_NUMBER"
